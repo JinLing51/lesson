@@ -1,0 +1,17 @@
+- name: Installation HA soft KeepAlived
+  yum:
+   name: keepalived
+   state: latest
+- name: Keepalived config file
+  copy:
+   src: keepalived.conf
+   dest: /etc/keepalived/keepalived.conf
+  tags:
+    - haconfig
+  notify:
+    - restart keepalived
+- name: Start Keepalived service
+  service:
+   name: keepalived
+   enabled: true
+   state: started  

@@ -1,0 +1,23 @@
+- name: Installation Apache Web server
+  yum:
+   name: httpd
+   state: latest
+  tags:
+   - install
+- name: Gen Configuration File
+  copy:
+   src: httpd.conf
+   dest: /etc/httpd/conf/httpd.conf
+  tags:
+   - configfile
+  notify:
+   - restart apache
+- name: Config Httpd Service
+  service:
+   name: httpd
+   enabled: true
+   state: started
+- name: Add init index file
+  template:
+   src: index.html.j2
+   dest: /var/www/html/index.html

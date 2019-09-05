@@ -1,0 +1,8 @@
+- name: upgrade EPEL
+  yum:
+   name: epel-release
+   state: latest
+- name: copy hosts file
+  copy:
+   src: hosts
+   dest: /etc/hosts

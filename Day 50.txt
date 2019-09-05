@@ -1,0 +1,236 @@
+Ansible
+
+1.config
+2.deployment
+
+ad-hoc task
+playbook (N task)
+agent-less
+Server (ansible)
+Client(无需安装)  （python ssh）
+Modules
+YAML
+
+
+Ansible
+1.Host inventory（主机列表.....）
+2.（先学会ad-hoc）-----》剧本Playbook
+3.Core Module 核心模块
+4.Custom Module
+5.ssh连接客户机（用户名/口令）（密钥认证）
+
+
+基于python
+使用 python-jinja2
+     python-paramiko
+	 PyYAML
+	 sshpass
+
+
+安装Ansible
+1.源码 https://github.com/ansible/ansible/releases/tag/stable-2.9-branchpoint
+2.epel yum源 yum install ansible
+3.python模块  (python index package)
+
+
+
+
+
+
+修改
+/etc/ansible/ansible.cfg
+去掉注释 host_key_checking = False
+
+
+建立ssh连接（密钥认证）
+
+   31  ssh 192.168.0.201
+   32  ssh 192.168.0.202
+   33  ssh 192.168.0.203
+   34  ssh-keygen -t rsa
+   35  ssh-copy-id 192.168.0.201
+   36  ssh-copy-id 192.168.0.202
+   37  ssh-copy-id 192.168.0.203
+   38  history 
+   39  ssh 192.168.0.201 hostname
+   40  ssh 192.168.0.202 hostname
+   41  ssh 192.168.0.203 hostname
+   42  ssh 192.168.0.201 date;ssh 192.168.0.202 date;ssh 192.168.0.203 date
+
+
+修改 host inventory文件 /etc/ansible/hosts 
+例如
+[group1]
+192.168.0.201
+192.168.0.202
+[group2]
+192.168.0.203
+192.168.0.204
+[group3]
+192.168.0.205
+192.168.0.206
+   19  ssh 192.168.0.201 date;ssh 192.168.0.202 date;ssh 192.168.0.203 date
+   20  ansible all -m command -a 'date'
+   21  ansible 192.168.0.201 -m command -a 'date'
+   22  ansible group1 -m command -a 'yum -y install vsftpd'
+   
+命令 ansible 主机列表 -m 模块名 -a  模块特有参数 
+
+模块的使用
+1.command模块 为ansible默认模块  直接使用shell命令作为参数 （不支持shell的管道 重定向和变量）
+ ansible 192.168.0.201 -m command -a 'echo "world">/tmp/test2'
+192.168.0.201 | CHANGED | rc=0 >>
+world>/tmp/test2
+ansible-doc -l
+ansible-doc -s 模块名
+2.cron
+ansible all -m cron -a 'minute="1" hour="3" job="ls"'
+3.user
+ansible -i /etc/ansible/myhosts webservers -m user -a 'name=tom state=absent'
+4.group
+   37  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' -v
+   38  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' -vv
+   39  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' 
+   40  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=dba gid=60002' 
+   41  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oper gid=60003' 
+   42  ansible -i /etc/ansible/myhosts  webservers -m user -a 'name=oracle uid=6001 group=oinstall groups="dba,oper"'
+   43  ansible -i /etc/ansible/myhosts  webservers -a 'id oracle'
+   44  history 
+5.copy
+   46  ansible -i /etc/ansible/myhosts  webservers -m copy -a 'src=/etc/hosts dest=/tmp/testfile owner=oracle group=oinstall mode=775'
+   47  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'
+   48  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /tmp/testfile'
+6.file
+   49  ansible -i /etc/ansible/myhosts  webservers -m file -a 'path=/tmp/testfile owner=root group=root mode=600'
+   50  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /tmp/testfile'
+   51  ansible -i /etc/ansible/myhosts  webservers -m file -a 'src=/tmp/testfile dest=/etc/testfile state=link '
+   52  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'
+7.ping
+ansible all -m ping
+附录 ：变量 --可以在inventory文件中例如不使用密钥验证是可以采取用户名ansible_ssh_user 密码ansible_ssh_pass
+[testserver]
+192.168.0.207 ansible_ssh_user=root ansible_ssh_pass='oracle'
+8.setup 查看ansible client信息
+ansible client （openssh，python 2.x 3.x OS：Linux:Redhat centos debian MacOS 不可以windows
+ansible 192.168.0.207 -m setup 
+# ansible 192.168.0.207 -m setup -a 'filter=ansible_facts'
+[testserver]
+192.168.0.207 ansible_ssh_user=root ansible_ssh_pass='oracle' ansible_ssh_port=22222
+
+9.shell
+38  ansible all -m command -a 'echo hello>/tmp/f001'
+   39  ansible all -m shell -a 'echo hello>/tmp/f001'
+   40  ansible all -m user -a 'name=david'
+   41  ansible all -m shell -a 'echo "1234"|passwd --stdin david'
+
+10.script 如果有多条shell语句 可以在本地编辑shell脚本 会自动拷贝到
+ansible客户端执行
+ ansible all -m script -a '/root/examtest.sh'
+
+11.yum
+
+present' or `installed', 安装 
+latest 安装最新
+`absent' or `removed') 删除
+注意 name指的是软件包名字 可以加版本号 例如 package_name-2.0
+  53  ansible-doc -s yum
+ansible all -m yum -a 'name=epel-release state=latest'
+   54  ansible all -m yum -a 'name=vsftpd state=present'
+   55  ansible all -m yum -a 'name=vsftpd state=absent'
+
+12.service
+安装nginx
+ansible all -m yum -a 'name=nginx state=latest'
+启动 以及设置自动启动nginx
+ansible all -m service -a 'name=nginx state=started enabled=yes'
+建一个脚本a01.sh 作用是生成自定义主页
+[root@s200 ~]# cat a01.sh 
+#!/usr/bin/bash
+echo "hello this is `hostname` Home page"> /usr/share/nginx/html/index.html
+使用script模块 在ansible client上执行该脚本
+ansible all -m script -a 'a01.sh'
+测试
+[root@s200 ~]# curl http://192.168.0.201
+hello this is s201 Home page
+[root@s200 ~]# curl http://192.168.0.203
+hello this is s203 Home page
+[root@s200 ~]# curl http://192.168.0.202
+hello this is s202 Home page
+[root@s200 ~]# curl http://192.168.0.204
+hello this is s204 Home page
+[root@s200 ~]# curl http://192.168.0.205
+hello this is s205 Home page
+[root@s200 ~]# curl http://192.168.0.206
+hello this is s206 Home page
+[root@s200 ~]# curl http://192.168.0.207
+hello this is s207 Home page
+
+
+ad-hoc命令
+ansible --help
+-v -vvv for more, -vvvv to enable  connection debugging
+-i INVENTORY （指定hosts（服务器列表）文件路径 ）
+    默认在ansible.cfg文件中 inventory      = /etc/ansible/hosts
+-f FORKS 指定多少并发进程 default=4	
+		ansible.cfg文件中 forks          = 4
+--private-key 密钥文件位置 		
+		ansible.cfg文件中#private_key_file = /path/to/file
+		默认 当前用户 ~/.ssh/id_rsa
+-m MODULE_NAME 模块名字 command cron file copy user group ping shell script yum service	
+-a MODULE_ARGS 模块特有参数
+-M MODULE_PATH 模块路径
+		ansible.cfg文件中 #library        = /usr/share/my_modules/
+（查有哪些模块 ansible-doc -l）
+ --list-hosts 
+
+ansible ad-hoc部署时间服务器 ntpd  centos7之后 可以用  建议用chrony
+ansible all -m yum -a 'name=chrony state=latest'
+1. 201-207全部作为time客户端 指向外部时钟源(公网的时间服务器)
+server 0.centos.pool.ntp.org iburst
+server 1.centos.pool.ntp.org iburst
+server 2.centos.pool.ntp.org iburst
+server 3.centos.pool.ntp.org iburst
+
+201 服务器
+# Please consider joining the pool (http://www.pool.ntp.org/join.html).
+server time1.aliyun.com iburst
+server time2.aliyun.com iburst
+server time3.aliyun.com iburst
+server time4.aliyun.com iburst
+202-207 客户端 
+server 192.168.0.201 iburst
+
+ansible all -m service -a 'name=chronyd state=restarted'
+
+
+剧本Playbook  YAML语言  
+- hosts: all
+  tasks:
+   - name: install nginx
+     yum:
+      name: nginx
+      state: latest
+   - name: config nginx service
+     service:
+      name: nginx
+      state: started
+      enabled: yes
+   - name: edit nginx index page
+     copy:
+      content: "hello world"
+      dest: /usr/share/nginx/html/index.html
+      owner: nginx
+      group: nginx
+[root@s200 ~]# ansible-playbook  playbook_nginx.yml --syntax-check
+
+[root@s200 ~]# ansible-playbook  playbook_nginx.yml 
+
+
+
+
+
+
+   
+   
+   
+

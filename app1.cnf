@@ -1,0 +1,27 @@
+[server default]
+# mysql user and password
+user=root
+password=123
+ssh_user=root
+# repl user and password
+repl_user=repl
+repl_password=123456
+
+# working directory on the manager
+manager_workdir=/var/log/masterha/app1
+# working directory on MySQL servers
+remote_workdir=/var/log/masterha/app1
+# 主库故障转移脚本 
+master_ip_failover_script=/root/master_ip_failover
+# 二次检测
+secondary_check_script=/usr/bin/masterha_secondary_check -s 192.168.0.50 -s 192.168.0.51 --user=root --port=22 --master_host=s51 --master_ip=192.168.0.51 --master_port=3306
+
+
+[server1]
+hostname=s51
+
+[server2]
+hostname=s52
+
+[server3]
+hostname=s53

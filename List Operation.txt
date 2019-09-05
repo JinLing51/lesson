@@ -1,0 +1,42 @@
+List的操作
+字符串 + *
+list1+[3,4,'x','y']
+list1*2
+
+List Method 方法
+append/insert
+count/remove/reverse
+v16.append(3)
+v16.insert(1,0)
+v17=[0,1,2,1,2,1,2,3,4,5,1,2]
+v17.count(1)
+v17.count(8)
+v17.remove(1)
+v17.reverse()
+
+List function函数
+len/max/min
+len(v17)
+max(v17)
+min(v17)
+
+字典{'key':'value','key':'value',......}
+v1={'alice':20,'bob':18,'chralie':21,'david':22}
+v2={"alice":20,'bob':18,"chralie":21,"david":22}
+v3={"alice":"F","bob":'M',"chralie":"M","david":"M"}
+v4={"name":"alice","age":20,"sex":"F","City":"London","grade":80}
+v5={"name":"bob","school":"NJU","sex":"F","City":"London","grade":80}
+
+print(v1['alice'])
+print(v3['alice'])
+print(v3['edward'])
+字典的键(key)只能是不可变对象
+
+create table students(name char(10),age number(2),sex char(1));
+insert into students values('alice',20,'F');
+
+
+
+
+
+

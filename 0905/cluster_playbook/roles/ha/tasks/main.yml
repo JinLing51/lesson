@@ -1,0 +1,29 @@
+- name: Installation HA soft KeepAlived
+  yum:
+   name: keepalived
+   state: latest
+- name: Keepalived config file
+  template:
+   src: keepalived.conf.j2
+   dest: /etc/keepalived/keepalived.conf
+  tags:
+    - haconfig
+  notify:
+    - restart keepalived
+- name: modify keepalive file 1
+  shell: "sed -i 's/MASTER/BACKUP/' /etc/keepalived/keepalived.conf"
+  when: ansible_hostname!="s201"
+  notify:
+    - restart keepalived
+
+- name: modify keepalive file 2
+  shell: "sed -i 's/priority 100/priority 40/' /etc/keepalived/keepalived.conf"
+  when: ansible_hostname!="s201"
+  notify:
+    - restart keepalived
+
+- name: Start Keepalived service
+  service:
+   name: keepalived
+   enabled: true
+   state: started  

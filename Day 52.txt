@@ -1,0 +1,46 @@
+ansible playbook
+role
+
+目录
+tasks
+files      copy
+templates   
+vars
+handlers
+
+mkdir -p /cluster_playbook/roles/{nginxlb,apacheweb,ha}/{tasks,files,templates,vars,handlers,defaults,meta}
+
+exam:  /ansible/ansible-examples-master/lamp_haproxy
+/etc/hosts
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.0.200 s200
+192.168.0.201 web1
+192.168.0.202 web2
+192.168.0.203 db1
+192.168.0.204 lb1
+192.168.0.205 nagios
+
+site.yml
+注释 - nagios
+#  - nagios
+
+
+
+
+
+
+---
+# This role will install MySQL and create db user and give permissions.
+- name: A
+  yum: 
+   name: 'https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm'
+- name: B
+  shell: 'yum-config-manager --disable mysql80-community'
+- name: C
+  shell: 'yum-config-manager --enable mysql56-community'
+
+- name: Install Mysql package
+  yum: name={{ item }} state=present
+  with_items:
+   - mysql-community-server
+   - MySQL-python

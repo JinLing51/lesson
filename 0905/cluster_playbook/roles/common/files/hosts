@@ -1,0 +1,15 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.0.200 s200
+192.168.0.201 web1 s201
+192.168.0.202 web2 s202
+192.168.0.203 db1  s203
+192.168.0.204 lb1 s204
+192.168.0.205 nagios s205
+192.168.0.206  s206
+192.168.0.207  s207
+192.168.0.208  s208
+192.168.0.209  s209
+
+
+192.168.0.209 webserver2

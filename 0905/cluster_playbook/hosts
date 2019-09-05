@@ -1,0 +1,11 @@
+# This is the default ansible 'hosts' file.
+
+[lbservers]
+s201
+s202
+
+[webservers]
+s203
+s204 
+s205 
+

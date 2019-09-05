@@ -1,0 +1,4 @@
+- name: upgrade EPEL
+  yum:
+   name: epel-release
+   state: latest

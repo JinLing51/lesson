@@ -1,0 +1,373 @@
+安装Ansible
+1.源码 https://github.com/ansible/ansible/releases/tag/stable-2.9-branchpoint
+2.epel yum源 yum install ansible   (ansible 2.8.4   python 2.7.5)
+3.python模块  (python index package)  (ansible 2.8.4   python 2.7.5)
+yum install python-setuptools
+easy_install pip
+pip -V
+pip install ansible
+[root@s200 ~]# ansible --version
+ansible 2.8.4
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/site-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 2.7.5 (default, Aug  4 2017, 00:39:18) [GCC 4.8.5 20150623 (Red Hat 4.8.5-16)]
+  
+4.在 python3  
+yum install python36 python36-tools
+wget https://bootstrap.pypa.io/get-pip.py
+python36 get-pip.py 
+.......
+Successfully installed pip-19.2.3 setuptools-41.2.0 wheel-0.33.6
+pip3.6 install ansible
+.....
+Successfully installed MarkupSafe-1.1.1 PyYAML-5.1.2 ansible-2.8.4
+ansible --version
+ansible 2.8.4
+  config file = None
+  configured module search path = ['/root/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/local/lib/python3.6/site-packages/ansible
+  executable location = /usr/local/bin/ansible
+  python version = 3.6.8 (default, Apr 25 2019, 21:02:35) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
+
+YAML的注意事项  
+1.区分大小写
+2.--- 代表一个文档
+3.与XML不同 基本不适用标记  使用空格缩进(建议2个) 不可以使用TAB
+4.字符后面的缩进 一个空格 name: 
+5.缩进要严格对其 缩进代表层级
+6.注释 #
+列表 用短横线
+
+  353  ansible all -m shell -a 'mkdir /download1'
+  354  ansible all -m file -a 'state=directory dest=/download2'
+模块
+下载get_url
+- name: Downloads files from HTTP, HTTPS, or FTP to node
+
+解压
+ansible all -m unarchive -a 'src=apache-tomcat-8.5.45.tar.gz dest=/src1'
+
+
+
+handlers
+---
+- hosts: all
+  tasks: 
+   - name: install nginx
+     yum: 
+      name: nginx
+      state: latest
+   - name: config nginx server
+     copy:
+      src: /root/nginx.conf
+      dest: /etc/nginx/nginx.conf
+     notify: 
+      - re nginx  
+   - name: starting nginx service
+     service:
+      name: nginx
+      state: started
+      enabled: yes
+   - name: edit nginx index page
+     copy:
+      content: "hello world"
+      dest: /usr/share/nginx/html/index.html
+      owner: nginx
+      group: nginx
+  handlers:
+   - name: re nginx
+     service:
+       name: nginx
+       state: restarted
+	   
+变量
+1.在playbook 的vars: 定义（与hosts同级别）  使用 {{ }} 调用
+- hosts: all
+  remote_user: root
+  vars:
+   - v1: nginx
+   - v2: abc
+   - v3: xyz
+#   - v10: ZZZZZ
+2.在inventory文件中	主机列表 添加变量   
+[dbservers]
+192.168.0.204  v10=abcde
+192.168.0.205  v10=xyz
+192.168.0.206  v10=AAA  V20=CCCC	   
+  - name: variables Test task
+    copy:
+     content: " {{ v10 }} test OK"
+     dest: /tmp/test100.txt
+	 
+
+3 	在inventory文件中	使用组添加
+ [webservers:vars]
+v30=ZZZ
+
+4.第四种变量 收集facts
+通过gather facts手机的信息 定义的变量
+ansible 192.168.0.203 -m setup
+
+ - name: variables gather facts variables
+     copy:
+      content: "this computer  Address {{ ansible_all_ipv4_addresses }} "
+	  dest: /tmp/mac_add.txt
+	  
+	  
+tag标签的使用
+- name: variables gather facts variables
+     copy:
+      content: "this computer  Address {{ ansible_all_ipv4_addresses }} "
+      dest: /tmp/mac_add.txt
+     tags:
+      - filetest
+
+ansible-playbook playbook_nginx.yml --tags="filetest"
+ansible-playbook playbook_nginx.yml --skip-tags="filetest,install"
+
+
+template 模块的使用 jinja2
+[webservers]
+192.168.0.201 http_port=8081
+192.168.0.202 http_port=8082
+192.168.0.203 http_port=8083
+
+[root@s200 ~]# grep Listen httpd.conf.j2 
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to 
+#Listen 12.34.56.78:80
+Listen {{ http_port }}
+
+[root@s200 ~]# cat playbook_apache.yml
+---
+- hosts: webservers
+  remote_user: root
+  tasks:
+   - name: Install apache Server
+     yum:
+      name: httpd
+      state: latest
+   - name: Configuration Apache CONFIGFILE
+     template:
+      src: /root/httpd.conf.j2
+      dest: /etc/httpd/conf/httpd.conf
+     notify:
+      - restart apache
+   - name: Config Apache Service
+     service:
+      name: httpd
+      enabled: true
+      state: started
+  handlers:
+   - name: restart apache
+     service:
+      name: httpd
+      state: restarted	  
+
+
+ansible按照task顺序执行 出错后不执行后面task
+使用ignore_errors可以在发生错误时 继续执行后续task
+---
+- hosts: 192.168.0.201
+  remote_user: root
+  tasks:
+   - name: copy file1
+     copy:
+      src: /root/file1
+      dest: /tmp/file1
+     ignore_errors: true
+   - name: copy file2
+     copy:
+      src: /root/file2
+      dest: /tmp/file2
+~                        
+
+
+[root@s200 ~]# ansible-playbook playbook_file.yml -C
+
+
+条件测试
+when
+[root@s200 ~]# cat playbook_user.yml playbook_mysql.yml 
+---
+- hosts: all
+  remote_user: root
+  tasks:
+   - name: create user
+     user:
+      name: user002
+      group: wheel
+     when: ansible_hostname=="s204"
+---
+- hosts: all
+  remote_user: root
+  tasks:
+   - name: install mysqld
+     yum:
+      name: mysql
+      state: present
+     when: ansible_memtotal_mb>3000
+
+
+迭代 循环
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_loops.html
+
+loop and with_<lookup>.
+
+with_items:
+  - 1
+  - [2,3]
+  - 4
+
+loop: "{{ [1, [2,3] ,4] | flatten(1) }}"
+
+循环种类
+with_list
+with_items
+with_indexed_items
+with_flattened
+with_together
+with_dict
+with_sequence
+with_subelements
+with_nested/with_cartesian
+with_random_choice
+
+
+
+1 标准循环 Standard loops 
+  loop:
+   - testuser1
+   - testuser2
+   
+  whit_items
+   - testuser1
+   - testuser2
+
+
+
+- hosts: 192.168.0.201
+  remote_user: root
+  tasks:
+   - name: add user testuser
+     user:
+      name: "{{ item }}"
+      state: present
+      groups: "wheel"
+#     loop:
+     with_items:
+      - testuser1
+      - testuser2
+      - testuser3
+#   - name: add user testuser1
+#     user:
+#      name: "testuser1"
+#      state: present
+#      groups: "wheel"
+#
+##   - name: add user testuser2
+#     user:
+#      name: "testuser2"
+#      state: present
+#      groups: "wheel"     
+
+标准循环扩展 （item使用字典 使用item变量名 字典key）
+---
+- hosts: 192.168.0.201
+  remote_user: root
+  tasks:
+   - name: add user testuser1
+     user:
+      name: "{{ item.username }}"
+      state: present
+      group: "{{ item.groupname }}"
+     loop:
+#    with_items:
+#     - testuser1
+      - {username: 'testuser1', groupname: 'wheel' }
+      - {username: 'testuser2', groupname: 'root' }
+      - {username: 'testuser3', groupname: 'postfix' }
+
+
+复杂的循环 Complex loops
+
+
+嵌套列表 nested lists
+
+- name: give users access to multiple databases
+  mysql_user:
+    name: "{{ item[0] }}"
+    priv: "{{ item[1] }}.*:ALL"
+    append_privs: yes
+    password: "foo"
+  loop: "{{ ['alice', 'bob'] |product(['clientdb', 'employeedb', 'providerdb'])|list }}"
+
+
+- name: give users access to multiple databases
+  mysql_user:
+    name: "{{ item[0] }}"
+    priv: "{{ item[1] }}.*:ALL"
+    append_privs: yes
+    password: "foo"
+  with_nested: 
+   - ['alice', 'bob'] 
+   - ['clientdb', 'employeedb', 'providerdb']
+   
+准备 MYSQL数据库 Day 26
+   安装PyMySQL
+   easy_install pip
+   pip install PyMySQL
+在被控制的MYSQL 建一个 root账号可以在ansible服务器 192.168.0.200上使用
+mysql> grant all on *.* to root@192.168.0.200 identified by '1234';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+
+ansible 服务器
+[root@s200 ~]# cat  playbook_loop03.yml            
+---
+- hosts: 192.168.0.208
+  tasks:
+   - name: create mysql database user
+     mysql_user:
+      login_user: "root"
+      login_password: 1234 
+      user: "{{ item[0] }}" 
+      priv: "{{ item[1] }}.*:ALL" 
+      append_privs: yes
+      password: 1234
+     with_nested:
+      - ['alice', 'bob']
+      - ['db1', 'db2', 'db3']
+[root@s200 ~]# 
+
+[root@s200 ~]# cat playbook_loop04.yml
+---
+- hosts: 192.168.0.208
+  tasks:
+   - name: create mysql database user
+     mysql_user:
+      login_user: "root"
+      login_password: 1234 
+      user: "{{ item[0] }}" 
+      priv: "{{ item[1] }}.*:ALL" 
+      append_privs: yes
+      password: 1234
+     loop: "{{ ['chralie', 'david'] |product(['db1', 'db2', 'db3'])|list }}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
