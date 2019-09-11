@@ -1,0 +1,300 @@
+docker image
+docker container
+docker network ls
+默认 bridge 实际上是NAT桥 （地址转换  地址分发 172.17.0.x/24）
+
+指定和网络相关的配置
+1.--network bridge
+2.--hostname server01
+3.--dns 8.8.8.8
+4.--add-host hostname:ipaddress
+5: -p
+   5.1 ContainerPort
+   5.2 hostPort:ContainerPort
+   5.3 ip::ContainerPort
+   5.4 ip:hostPort:ContainerPort
+
+docker run --name box1 --network bridge --hostname server01 --dns 8.8.4.4 --add-host server02:1.1.1.1 -it --rm busybox
+
+  901  docker run --name web1 --network bridge --hostname web01 --dns 8.8.8.8 -p 80:80 -d  -it --rm  nginx:latest 
+  902  curl 172.17.0.3
+  903  curl 192.168.0.211
+  904  docker run --name web1 --network bridge --hostname web01 --dns 8.8.8.8 -p 80 -d  -it --rm  nginx:latest 
+  905  curl 192.168.0.211
+  906  curl 192.168.0.211:32768
+  907  docker run --name web1 --network bridge --hostname web01 --dns 8.8.8.8 -p 192.168.0.211::80 -d  -it --rm  nginx:latest 
+  908  docker run --name web1 --network bridge --hostname web01 --dns 8.8.8.8 -p 192.168.0.211:9090:80 -d  -it --rm  nginx:latest 
+  
+  # docker port web1
+  # docker container inspect web1 |grep Port
+  
+  
+  ????
+container 基于Linux  Windows OSX
+多个容器运行在一个操作系统上 需要进行隔离
+隔离的机制有两个： Namespacce和Cgroups
+Namespace： Linux 命名空间 使得 每个进程只看到自己的系统视图（文件 进程 网络 主机名 ..）
+Cgroups: 限制了进程可以使用的资源（CPU RAM 网络i/o ）
+
+目前的Linux 内核支持6种Namespace
+	UTS 主机 域名
+	Net
+	PID
+	USER 用户名 组名
+	IPC
+	Mount 文件
+	
+Docker 使用了Namespace 使得 自己每个容器都有自己的命名空间 相互隔离	
+	但某些时候 在某些场景中可以共用一些命名空间
+Cgroups
+
+  
+  一套网络系统
+  联合网络
+  docker run --name box1 --network bridge -d --rm busybox:latest /bin/httpd -f
+  docker run --name box3 --network container:box1 -d --rm busybox:latest /bin/httpd -f -p 82
+  
+使用 --network host 
+结果就是 容器直接和主机的Net UTS 命名空间联合 （ip地址 主机名）
+docker run --name box1 --network host -d --rm busybox:latest /bin/httpd -f
+
+
+  
+  
+附录知识 ：Namespace（Net）
+ip netns add ns01
+
+ 882  ip link add name ensv1.1 type veth peer name ensv1.2
+  883  ip a s
+  884  ip netns add ns01
+  885  ip netns add ns02
+  886  ip netns exec ns01 ip a s
+  887  ip link set dev ensv1.1 netns ns01
+  888  ip netns exec ns01 ip a s
+  889  ip a s
+  890  ifconfig ensv1.2 10.0.0.2/24 up
+  891  ip a s
+  892  ip netns exec ns01 ifconfig ensv1.1 10.0.0.1/24 up
+  893  ip netns exec ns01 ip a s
+  894  ping -c1 10.0.0.1
+  895  history 
+
+
+  
+ 修改bridge网络的ip 
+  
+[root@s211 ~]# cat  /etc/docker/daemon.json   
+{
+  "registry-mirrors": ["https://wap3hkzj.mirror.aliyuncs.com"],
+  "insecure-registries": ["myreg.example.com:5000","s211:5000"],
+  "bip":"10.0.0.1/24"
+}
+
+systemctl daemon-reload
+systemctl restart docker  
+  
+  
+自建网路
+ docker network create -d bridge --subnet "172.30.0.0/24" --gateway "172.30.0.1" mybridge
+docker run --name box1 --network mybridge -it --rm busybox:latest  
+
+/ # ip a s
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+69: eth0@if70: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 1500 qdisc noqueue 
+    link/ether 02:42:ac:1e:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 172.30.0.2/24 brd 172.30.0.255 scope global eth0
+       valid_lft forever preferred_lft forever
+/ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=127 time=199.938 ms
+
+DOCKER 卷的使用
+为了Docker容器持久化保存数据
+无状态容器 共享数据
+bind volume
+docker manager volume
+bind volume：
+ docker run --name web1 -v /data02:/usr/share/nginx/html -d --rm nginx
+ docker run --name web2 -v /data02:/usr/share/nginx/html -d --rm nginx
+docker manager volume：
+ docker run --name web3 -v /usr/share/nginx/html -d --rm nginx
+ docker container inspect web3|grep -A10 Mount
+ 
+======================资源限制
+  -c, --cpu-shares int                 CPU shares (relative weight)
+      --cpus decimal                   Number of CPUs
+      --cpuset-cpus string             CPUs in which to allow execution (0-3, 0,1)
+      --cpuset-mems string             MEMs in which to allow execution (0-3, 0,1)
+  -m, --memory bytes                   Memory limit
+      --memory-reservation bytes       Memory soft limit
+      --memory-swap bytes              Swap limit equal to memory plus swap: '-1' to
+                                       enable unlimited swap
+      --memory-swappiness int          Tune container memory swappiness (0 to 100)
+                                       (default -1)	
+      --oom-kill-disable               Disable OOM Killer									   
+
+相对权重
+ 1011  docker run --name web1 -d --cpu-shares 100 --rm nginx:latest 
+ 1012  docker run --name web2 -d --cpu-shares 200 --rm nginx:latest 
+ 1013  docker run --name web3 -d --cpu-shares 700 --rm nginx:latest 
+ docker stats
+
+docker run --rm -it progrium/stress --cpu 2 --io 1 --vm 2 --vm-bytes 128M --timeout 10s
+使用stress压力测试
+ 1018  docker run --name p01 -d --cpu-shares 100 --rm progrium/stress --cpu 8
+ 1019  docker run --name p02 -d --cpu-shares 200 --rm progrium/stress --cpu 8
+ 1020  docker run --name p03 -d --cpu-shares 700 --rm progrium/stress --cpu 8
+
+绝对个数
+1012  grep process /proc/cpuinfo|wc -l
+ 1013  lscpu
+ 1022  docker run --name p01 -d --cpus 1 --rm progrium/stress --cpu 8
+ 1023  docker run --name p03 -d --cpus 3 --rm progrium/stress --cpu 8 
+
+CPU List 限制在哪颗CPU  
+ 1026  docker run --name p01 -d --cpuset-cpus 0-2 --rm progrium/stress --cpu 8
+ 1027  docker run --name p02 -d --cpuset-cpus 3,5,6 --rm progrium/stress --cpu 10
+
+
+memory
+oom-kill-disable 保证容器超出内存 容器不被kill
+
+ 1033  docker run --name p01 -d --memory 256M --rm progrium/stress --vm 2 --vm-bytes 128M
+ 1034  docker run --name p02 -d --memory 256M --rm progrium/stress --vm 2 --vm-bytes 256M
+ 1035  docker run --name p02 -d --memory 256M --oom-kill-disable=true --rm progrium/stress --vm 2 --vm-bytes 256M
+ 
+-------SWAP 2XMemory 
+docker run --name p01 -d --memory 256M --rm progrium/stress --vm 2 --vm-bytes 128M
+-------SWAP=512-256
+docker run --name p02 -d --memory 256M --memory-swap 512M --rm progrium/stress --vm 2 --vm-bytes 128M
+-------SWAP=256-256
+docker run --name p03 -d --memory 256M --memory-swap 256M --rm progrium/stress --vm 2 --vm-bytes 128M
+-------等同 没设置 SWAP 2XMemory 
+docker run --name p04 -d --memory 256M --memory-swap 0 --rm progrium/stress --vm 2 --vm-bytes 128M
+-------使用宿主机的所有SWAP
+docker run --name p05 -d --memory 256M --memory-swap -1 --rm progrium/stress --vm 2 --vm-bytes 128M
+       --memory-swappiness 0  （尽量不使用SWAP  例如数据库容器）
+docker run --name p06 -d --memory 256M --memory-swappiness 0 --rm progrium/stress --vm 2 --vm-bytes 128M
+      --memory-swappiness 100  （尽量使用SWAP）
+docker run --name p07 -d --memory 256M --memory-swappiness 100 --rm progrium/stress --vm 2 --vm-bytes 128M
+ 
+ 
+==========端口
+-p
+-P 
+ -P, --publish-all                    Publish all exposed ports to random ports
+
+FROM busybox:latest
+RUN mkdir -p /www/html
+RUN echo "this is busybox Dockerfile WEB SERVER" > /www/html/index.html
+EXPOSE 80/tcp 8080/tcp 3306/tcp 9527/udp
+CMD ["/bin/httpd","-f","-h","/www/html"]
+
+docker build -t busyweb001 .  
+
+# docker run --name web4  -P -d  -it --rm  busyweb001:latest 
+
+[root@s211 ~]# docker port web4
+3306/tcp -> 0.0.0.0:32771
+80/tcp -> 0.0.0.0:32772
+8080/tcp -> 0.0.0.0:32770
+9527/udp -> 0.0.0.0:32768
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======Dockerfile的回顾和补充
+[root@s211 ~]# cat /myproject01/Dockerfile 
+FROM busybox:latest
+RUN mkdir -p /www/html
+RUN echo "this is busybox Dockerfile WEB SERVER" > /www/html/index.html
+EXPOSE 80/tcp
+CMD ["/bin/httpd","-f","-h","/www/html"]
+
+
+[root@s211 ~]# cat /myproject02/Dockerfile  
+FROM python:2.7-slim
+WORKDIR /app
+COPY . /app
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+EXPOSE 80
+ENV NAME World
+CMD ["python", "app.py"]
+[root@s211 ~]# 
+
+
+
+[root@s211 ~]# cat /myproject03/Dockerfile  
+FROM busybox:latest
+LABEL maintainer="jinling <70491992@qq.com>"
+ENV WEB_ROOT /www/html
+RUN mkdir -p ${WEB_ROOT} && \
+    echo "this is busybox Dockerfile WEB SERVER" > ${WEB_ROOT}/index.html
+EXPOSE 80/tcp
+#CMD ["/bin/httpd","-f","-h","${WEB_ROOT}"]
+CMD /bin/httpd -f -h ${WEB_ROOT}
+
+命令回顾
+FROM
+LABEL
+ENV
+COPY
+ADD
+RUN
+WORKDIR
+EXPOSE
+CMD
+
+
+VOLUME 在image中定义一个目录 可以在创建容器时 自动映射卷 实现持久化数据
+ENTRYPOINT
+STOPSIGNAL SIGTERM
+
+
+
+
+如果 Dockerfile制作image   image--container  container运行进程就是Dockerfile的最后一个CMD
+但是如果Dockerfile 有ENTRYPOINT  那么 container运行进程就是Dockerfile中的Entrypoint 指定的命令  而CMD 将会成为该命令参数
+
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["mysqld"]
+
+docker-entrypoint.sh mysqld
+
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+EXPOSE 3306 33060
+CMD ["mysqld"] 
+
+docker-entrypoint.sh mysqld
+
+
+"docker-entrypoint.sh mysqld"
+1. docker-entrypoint.sh(shell脚本  初始化数据库)
+2. 前台 启动服务mysqld
+
+exec "$@"
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+  
+  
+  
+  

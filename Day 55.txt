@@ -1,0 +1,284 @@
+docker 命令回顾
+docker container
+
+docker image
+docker network
+
+docker search
+docker container command
+docker image command
+
+docker search 从docker hub上搜索image
+docker image pull docker_registry/namespace/Repositry名字:tag  (latest 7.6 7.4)
+
+docker container create
+docker container start
+docker container stop
+docker container pause
+docker container unpause
+docker container run
+docker container ps
+docker container kill
+docker container rm
+docker container inspect
+docker container logs
+
+
+
+docker image
+每个docker image 都是在某个image基础之上的产物
+Storage Driver: overlay2
+
+docker image inspect 
+
+打标签
+docker image tag 19485c79a9bb jinling/busybox:v0.1
+登录docker hub的私人仓库
+docker login -u jinling
+上传
+docker push jinling/busybox:v0.1
+
+
+docker image tag 19485c79a9bb registry.cn-shanghai.aliyuncs.com/skyspace/busybox:v1.0
+docker push registry.cn-shanghai.aliyuncs.com/skyspace/busybox:v1.0
+
+docker login --username=jinling51@gmail.com registry.cn-shanghai.aliyuncs.com
+docker tag [ImageId] registry.cn-shanghai.aliyuncs.com/skyspace/busybox:[镜像版本号]
+docker push registry.cn-shanghai.aliyuncs.com/skyspace/busybox:[镜像版本号]
+
+docker.io/jinling/busybox:v0.1
+
+
+1.docker commit 
+2.docker builder
+3.docker save/load
+
+导出  导入
+  510  docker image save -o file1 nginx:latest 
+  511  docker image save -o file2 hello-world:latest  mysql:5.7.27 
+  513  docker image rm nginx:latest 
+  
+  515  docker container stop $(docker container ls -q)
+  516  docker container rm $(docker container ls -q -a)
+  517  docker image rm nginx:latest 
+  518  docker image rm mysql:5.7.27 
+  519  docker image rm hello-world:latest 
+  520  docker image ls
+
+  522  docker image rm jinling/busybox:v0.1 
+
+  524  docker image rm  -f 19485c79a9bb
+  525  docker image ls
+  526  docker load -i file1
+  527  docker load -i file2
+  528  history 
+
+
+1.docker commit 
+运行一个容器，更改成需要的样子
+docker run --name box1 -it --rm busybox:latest
+
+使用 commit 将该容器生成image （可以使用 commit -p  暂停容器 便于建立镜像）
+  504  docker commit -p box1 
+  505  docker image ls
+  506  docker image tag 3769821571fb busyboxplus
+  507  docker image tag 3769821571fb jinling/busyboxplus:v1.0
+  508  docker image tag 3769821571fb registry.cn-shanghai.aliyuncs.com/skyspace/busyboxplus:v1.0
+  509  docker image ls
+  510  docker push registry.cn-shanghai.aliyuncs.com/skyspace/busyboxplus:v1.0
+
+第一步
+[root@s211 ~]# docker container run --name box2 --rm -it busybox:latest 
+/ # ls /bin/httpd
+/bin/httpd
+/ # mkdir /www/html
+mkdir: can't create directory '/www/html': No such file or directory
+/ # mkdir /www/html -p
+/ # echo "this is busybox WEB SERVER" > /www/html/index.html
+/ # /bin/httpd -f -h /www/html/
+
+第二部
+docker container commit -p -c 'CMD ["/bin/httpd","-f","-h","/www/html"]' box2  busyboxweb:v0.4
+sha256:129bb00cbc895eff1c6425899354f1e069c28b87d28e44a348ee12a3f44cf7bb
+
+
+第三步
+[root@s211 ~]# docker image inspect busyboxweb:v0.4|grep -A5 Cmd
+            "Cmd": [
+                "sh"
+            ],
+            "Image": "busybox:latest",
+            "Volumes": null,
+            "WorkingDir": "",
+--
+            "Cmd": [
+                "/bin/httpd",
+                "-f",
+                "-h",
+                "/www/html"
+				
+第四步
+[root@s211 ~]# docker run --name b01 --rm busyboxweb:v0.4
+
+第五步
+[root@s211 ~]# docker container inspect b01|grep IPAdd
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.3",
+                    "IPAddress": "172.17.0.3",
+[root@s211 ~]# curl 172.17.0.3
+this is busybox WEB SERVER				
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2.Dockerfile    docker build  
+FROM
+RUN
+EXPOSE
+CMD
+
+建立上下文目录/myproject01
+mkdir -p /myproject01 && cd /myproject01
+编辑Dockerfile
+vim Dockerfile
+FROM busybox:latest  基础镜像
+RUN mkdir -p /www/html   
+RUN echo "this is busybox Dockerfile WEB SERVER" > /www/html/index.html
+EXPOSE 80/tcp
+CMD ["/bin/httpd","-f","-h","/www/html"]
+
+建立一个自定义个image
+docker build -t busyweb:v1.0 .     
+运行
+docker run --name web1 --rm -d busyweb:v1.0 
+测试
+# curl 172.17.0.3
+this is busybox Dockerfile WEB SERVER
+上传到仓库（docker hub 还是其他.......）
+
+
+例子文件在下列链接
+https://docs.docker.com/get-started/part2/
+
+[root@s211 myproject02]# pwd
+/myproject02
+[root@s211 myproject02]# ls
+app.py  Dockerfile  requirements.txt
+[root@s211 myproject02]# docker build -t dockerexam:v1.0 . 
+# docker run --name exam01 -p 8080:80 --rm -d dockerexam:v1.0 
+
+# curl 172.17.0.4
+# curl 192.168.0.211:8080 
+
+
+
+上传到仓库（docker hub 还是其他.......）
+1 公有docker hub  
+2 国内aliyun
+docker image tag dockerexam:v1.0 jinling/dockerexam:v1.0
+  533  docker login
+  534  docker push jinling/dockerexam:v1.0 
+  535  docker login --username=jinling51@gmail.com registry.cn-shanghai.aliyuncs.com
+  536  docker image tag dockerexam:v1.0 registry.cn-shanghai.aliyuncs.com/skyspace/dockerexam:v1.0
+  537  docker push registry.cn-shanghai.aliyuncs.com/skyspace/dockerexam:v1.0
+3 自建registry
+ 安装docker registry包
+ # yum install docker-registry
+  systemctl enable docker-distribution.service
+  systemctl start docker-distribution.service
+  cat /etc/docker-distribution/registry/config.yml
+关注两项配置信息 （存储 和  端口） 
+filesystem:
+        rootdirectory: /var/lib/registry  
+http:
+    addr: :5000
+	
+	
+echo '192.168.0.201 myreg.example.com'>> /etc/hosts	
+docker image tag dockerexam:v1.0 myreg.example.com:5000/dockerexam:v1.0
+docker push myreg.example.com:5000/dockerexam:v1.0
+上传失败
+Get https://myreg.example.com:5000/v2/: http: server gave HTTP response to HTTPS client
+
+
+允许本机docker使用HTTP协议上传
+vim /etc/docker/daemon.json
+{
+  "registry-mirrors": ["https://wap3hkzj.mirror.aliyuncs.com"],
+  "insecure-registries": ["myreg.example.com:5000"]
+}
+
+systemctl daemon-reload
+systemctl restart docker
+docker push myreg.example.com:5000/dockerexam:v1.0
+  
+容器 registry
+docker run -d -p 5000:5000 --restart always --name registry registry:2
+
+[root@s211 ~]# cat /etc/hosts
+.........
+192.168.0.211 s211
+
+docker image tag dockerexam:v1.0 s211:5000/dockerexam:v1.0
+
+[root@s211 ~]# cat  /etc/docker/daemon.json   
+{
+  "registry-mirrors": ["https://wap3hkzj.mirror.aliyuncs.com"],
+  "insecure-registries": ["myreg.example.com:5000","s211:5000"]
+}
+
+systemctl daemon-reload
+systemctl restart docker
+docker push s211:5000/dockerexam:v1.0
+
+强烈建议 容器启动时 使用 -v 进行volume持久化
+
+
+优化image 文件层数
+FROM busybox:latest
+LABEL maintainer="jinling <70491992@qq.com>"
+RUN mkdir -p /www/html && \
+    echo "this is busybox Dockerfile WEB SERVER" > /www/html/index.html
+EXPOSE 80/tcp
+CMD ["/bin/httpd","-f","-h","/www/html"]
+
+两条RUN命令 合并成一条 那么image只会堆叠一层文件
+
+docker build -t busyweb:v3.0 .
+
+[root@s211 ~]# docker image inspect busyweb:v3.0 |grep -A9 RootFS
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:6c0ea40aef9d2795f922f4e8642f0cd9ffb9404e6f3214693a1fd45489f38b44",
+                "sha256:7b96f221c1a2f06729cb2059ad65894f1383f274bbaa23c4d7562b35b9b1d9d8"
+            ]
+
+
+变量
+ENV
+FROM busybox:latest
+LABEL maintainer="jinling <70491992@qq.com>"
+ENV WEB_ROOT /www/html
+RUN mkdir -p ${WEB_ROOT} && \
+    echo "this is busybox Dockerfile WEB SERVER" > ${WEB_ROOT}/index.html
+EXPOSE 80/tcp
+#CMD ["/bin/httpd","-f","-h","${WEB_ROOT}"]
+#CMD ["/bin/httpd","-f","-h","/www/html"]
+CMD /bin/httpd -f -h ${WEB_ROOT}
+
+CMD 命令 两种形式 
+01.shell命令形式 CMD command option parameter  
+02.List形式 CMD ["command","option","parameter"]
+命令和参数作为列表值存在 带来的问题就是不可以使用shell 的功能（重定向 管道 变量） 
+好处是：？？？？？？
+错误的语句：
+CMD ["/bin/httpd","-f","-h","${WEB_ROOT}"] （因为不可以使用shell 的功能 此处无法解析变量）
+正确的语句：
+CMD ["/bin/httpd","-f","-h","/www/html"]    （可以使用直接路径）
+或
+CMD /bin/httpd -f -h ${WEB_ROOT}   （此处可以使用变量）
+
+
+
+
+
+

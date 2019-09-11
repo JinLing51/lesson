@@ -1,0 +1,25 @@
+---
+- name: this is test playbook
+  hosts: 192.168.0.201
+  remote_user: root
+  gather_facts: yes
+  tasks:
+   - name: A
+     copy:
+      content: '{{ ansible_hostname }}'
+      dest: /tmp/a001
+   - name: B
+     shell: 'whoami'
+     register: v1
+   - name: c
+     copy:
+      content: '{{ v1.stdout }}'
+      dest: /tmp/a001
+   - name: D
+     debug:
+      msg: 'the username:  "{{ v1.stdout }}"'
+
+
+
+
+

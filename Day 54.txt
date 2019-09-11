@@ -1,0 +1,222 @@
+ Hardware+OS+soft(vmeare workstation)+OS+(soft)
+ 
+ Hardware+虚拟化系统（Exsi）+OS+(soft)
+          虚拟化系统 hyperV
+		  
+基础架构即服务的云计算（弹性计算）		IaaS  
+
+硬件--OS--虚拟机---硬件--OS--   MySQL
+
+
+
+
+轻量级的虚拟化产品---容器
+
+docker-ce
+
+yum -y install elep-release
+cd /etc/yum.repos.d/
+wget https://download.docker.com/linux/centos/docker-ce.repo
+yum install docker-ce
+systemctl start docker
+systemctl enable docker
+docker version
+[root@s211 yum.repos.d]# docker version
+Client: Docker Engine - Community
+ Version:           19.03.2
+ API version:       1.40
+ Go version:        go1.12.8
+ Git commit:        6a30dfc
+ Built:             Thu Aug 29 05:28:55 2019
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.2
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.12.8
+  Git commit:       6a30dfc
+  Built:            Thu Aug 29 05:27:34 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.2.6
+  GitCommit:        894b81a4b802e4eb2a91d1ce216b8817763c29fb
+ runc:
+  Version:          1.0.0-rc8
+  GitCommit:        425e105d5a03fabd737a126ad93d62a9eeede87f
+ docker-init:
+  Version:          0.18.0
+  GitCommit:        fec3683
+  
+  
+Docker Daemon：Listen Docker API request；And Manager Docker Object：Container images Network
+ Volume
+Docker Client：用户使用docker命令进行管理  Docker API
+Docker Registry：stores Docker Images
+                 Docker Hub---Public Docker Registry
+                 OR Private Registry	
+
+命令
+   35  docker version
+   38  docker info
+   40  docker help
+   41  docker image --help
+   42  docker container  --help
+
+   13  docker image ls
+   14* docker container ls
+   15  docker images
+   16  docker ps
+
+
+registry  https://hub.docker.com/mysql
+   mysql
+   mysql:latest
+   mysql:5.7.27
+   
+docker image ls
+docker image pull mysql:5.7.27
+docker image pull mongo
+docker image pull busybox
+docker image pull hello-world
+docker image pull haproxy
+docker image ls
+docker image pull centos:7.6.1810
+# docker image search centos
+
+   55  docker container --help
+   56  docker container run -it centos:7.6.1810 /bin/bash
+   57  docker container ls
+   58  docker container ls -a
+   59  docker container start c2917af75722
+   60  docker container ls 
+   61  docker container run -it centos:7.6.1810 /bin/bash
+   62  docker container ls 
+   63  docker container ls -a
+   64  docker container start 2f5dc27f62e9
+   65  docker container ls 
+   66  docker container run -name mycent -it centos:7.6.1810 /bin/bash
+   67  docker container run --name mycent -it centos:7.6.1810 /bin/bash
+   
+   
+-----
+docker search image_name(到仓库中找 默认docker hub)
+docker image ls  (名 tag sha256 image ID 创建时间 size)
+docker image ls --no-trunc
+容器命令  （ls run start stop pause unpause rm create）
+容器状态   running stop
+
+查看
+docker container ls (查看running)
+docker container ls -a (查看所有)
+docker container ls -a -q 查看所有容器的ID
+停止 stop/kill
+docker container stop dcbadac241c4
+docker container stop nginx3
+docker container stop `docker container ls -q`
+删除 rm
+docker container rm 
+docker container rm `docker container ls -a -q`
+
+例子  image busybox
+docker run -it --rm busybox
+[root@s211 ~]# docker container run busybox
+[root@s211 ~]# docker container run --name box1 busybox
+[root@s211 ~]# docker container run --name box2 --rm busybox
+[root@s211 ~]# docker container run -it --name box3 --rm busybox
+route -e
+ping 172.17.0.1
+ping 8.8.8.8
+httpd --help
+mkdir /html/www -p
+echo "this is busybox Web server" > /html/www/index.html
+httpd -f -h /html/www/
+
+
+docker container run --name nginx3 --rm -d nginx:latest
+docker container inspect nginx1 |grep -A 5 Cmd
+docker container inspect nginx1 |grep IPAddress
+# docker container exec -it nginx1 /bin/sh   
+   
+docker container run --name mysql1 -e MYSQL_ROOT_PASSWORD=11111111  mysql:5.7.27 
+docker container run --name mysql2 -e MYSQL_ROOT_PASSWORD=11111111 -d mysql:5.7.27 
+
+docker container inspect mysql1 |grep -A 5 Cmd
+docker container inspect mysql1 |grep IPAddress
+docker container exec -it mysql1 /bin/bash
+root@3bab5a6c68c4:/# mysql -uroot -p11111111 
+   
+[root@s211 ~]# docker run --name redis1 --rm -d redis:latest
+09047ef6f8b881e91be81917b177789fbacc5cbaa46daf0370ec846b25e26285
+[root@s211 ~]# 
+[root@s211 ~]# docker container ls
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                 NAMES
+09047ef6f8b8        redis:latest        "docker-entrypoint.s…"   17 seconds ago      Up 16 seconds       6379/tcp              redis1
+44aac433d308        mysql:5.7.27        "docker-entrypoint.s…"   27 minutes ago      Up 27 minutes       3306/tcp, 33060/tcp   mysql2   
+  [root@s211 ~]# docker container exec -it redis1 /bin/sh
+# 
+# ps
+/bin/sh: 2: ps: not found
+# redis-cli
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379> set v1 abced
+OK
+127.0.0.1:6379> get v1
+"abced"
+127.0.0.1:6379> exit
+# exit 
+
+
+   
+ docker run --name some-nginx -v /some/content:/usr/share/nginx/html:ro -d nginx  
+docker container run --name nginx1 -v /nginxweb:/usr/share/nginx/html:ro --rm -d nginx 
+   echo "this is ngifdsfsdfsdnx test" >/nginxweb/index.html
+   curl 172.17.0.2
+   
+docker container run --name nginx1 -p 80:80 -v /nginxweb:/usr/share/nginx/html:ro --rm -d nginx   
+   
+[root@s211 ~]# docker container run --name mysql1 -e MYSQL_ROOT_PASSWORD=12345678 -p 3306:3306 -v /mysql/mysql1:/var/lib/mysql --rm -d mysql:5.7.27
+[root@s211 ~]# mysql -uroot -p12345678 -h192.168.0.211
+mysql> create database db1;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> use db1
+Database changed
+mysql> create table table1 as select * from mysql.user;
+Query OK, 4 rows affected (0.00 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> select count(*) from table1;   
+
+
+Container State：running stoped paused created (被rm了)
+
+docker container create --name mysql2 -e MYSQL_ROOT_PASSWORD=12345678 -p 3307:3306 -v /mysql/mysql2:/var/lib/mysql --rm  mysql:5.7.27
+
+created----start命令----running----stop------stoped
+命令：
+docker container ls
+docker container ls -a
+create start restart run(create|start) stop(kill) rm  rm -f  pause unpause
+stop 容器还在 容器中的数据还在  
+rm   容器destroy  容器中的数据销毁
+ -v 
+ -p 
+docker container rm `docker container ls -a -q`
+
+
+
+
+
+
+
+
+
+   
+
+
+
+				 
