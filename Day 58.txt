@@ -1,0 +1,252 @@
+  serviceSubnet: 10.96.0.0/12
+  podSubnet: 10.244.0.0/16
+
+
+serviceSubnet:10.96.0.0/12
+netid:10.96.0.0
+broadcast:10.111.255.255
+first: 10.96.0.1/12
+last:10.111.255.254
+
+[kubeadm@masnode1 ~]$ kubectl run www --image=jinling/nginx:alpine0 --port=80 --generator=run/v1
+kubectl run --generator=run/v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+replicationcontroller/www created
+
+[kubeadm@masnode1 ~]$ kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+www-k2p4s   1/1     Running   0          66s
+
+
+
+
+[kubeadm@masnode1 ~]$ kubectl expose replicationcontroller www --type=LoadBalancer --name www-pub
+service/www-pub exposed
+[kubeadm@masnode1 ~]$ kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP        92m
+www-pub      LoadBalancer   10.101.148.64   <pending>     80:30681/TCP   21s
+
+[kubeadm@masnode1 ~]$ curl 10.101.148.64
+Hi. Welcome visit my web 1b25b3a5683e
+
+[kubeadm@masnode1 ~]$ kubectl scale rc www --replicas=3
+replicationcontroller/www scaled
+
+[kubeadm@masnode1 ~]$ kubectl get pods
+NAME        READY   STATUS              RESTARTS   AGE
+www-bzlnd   1/1     Running             0          6s
+www-k2p4s   1/1     Running             0          26m
+www-vdhrf   0/1     ContainerCreating   0          6s
+
+[kubeadm@masnode1 ~]$ kubectl get pods -o wide
+NAME        READY   STATUS    RESTARTS   AGE   IP           NODE                   NOMINATED NODE   READINESS GATES
+www-bzlnd   1/1     Running   0          26s   10.244.3.2   wornode3.example.com   <none>           <none>
+www-k2p4s   1/1     Running   0          26m   10.244.2.2   wornode2.example.com   <none>           <none>
+www-vdhrf   1/1     Running   0          26s   10.244.1.2   wornode1.example.com   <none>           <none>
+[kubeadm@masnode1 ~]$ kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP        111m
+www-pub      LoadBalancer   10.101.148.64   <pending>     80:30681/TCP   19m
+
+
+[kubeadm@masnode1 ~]$ curl 10.101.148.64               
+Hi. Welcome visit my web 1b25b3a5683e
+[kubeadm@masnode1 ~]$ curl 10.101.148.64
+Hi. Welcome visit my web 1b25b3a5683e
+
+
+[kubeadm@masnode1 ~]$ kubectl scale rc www --replicas=6
+replicationcontroller/www scaled
+[kubeadm@masnode1 ~]$ kubectl scale rc www --replicas=3
+replicationcontroller/www scaled
+[kubeadm@masnode1 ~]$ 
+
+
+
+pod kubernetes的管理单元
+通过 kubelet 管理pod
+pod 含有一个container
+POD 多个容器（少）
+
+nginx--tomcat---mysql
+
+POD
+命令创建一个POD
+kubectl run yourweb --image=jinling/nginx:alpine0 --port=80 --generator=run-pod/v1
+
+YAML文件创建一个POD
+
+
+kubectl run myweb --image=jinling/nginx:alpine0 --port=80 --generator=run-pod/v1
+NAME        READY   STATUS    RESTARTS   AGE
+myweb       1/1     Running   1          3h
+
+通过已有的pod 看其yAML配置文件
+kubectl get pod yourweb  -o yaml > yourweb.yml
+导出 的yaml 有四段
+kind
+metadata
+spec
+status
+
+[kubeadm@masnode1 ~]$ cat webx.yml
+apiVersion: v1
+kind: Pod
+metadata:
+   name: webx
+spec: 
+   containers:
+    - image: jinling/nginx:alpine0
+      name: webx
+      ports:
+        - containerPort: 80
+          protocol: TCP
+[kubeadm@masnode1 ~]$ kubectl create -f webx.yml 
+
+[kubeadm@masnode1 ~]$ kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+myweb       1/1     Running   1          3h
+webx        1/1     Running   0          15s
+
+$ kubectl describe pod webx 
+
+$ kubectl explain pods
+
+观察pod运行
+curl 10.101.148.64
+kubectl logs www-kphwt
+
+临时性使用端口映射 测试POD
+[kubeadm@masnode1 ~]$ kubectl port-forward webx 20000:80
+Forwarding from 127.0.0.1:20000 -> 80
+Forwarding from [::1]:20000 -> 80
+
+另一个终端
+[root@masnode1 ~]# curl 127.0.0.1:20000
+Hi. Welcome visit my web 1b25b3a5683e
+
+
+
+ Organizing pods and all other Kubernetes objects is done through labels.
+  key-value
+  
+  app:UI
+  app:DB
+  
+  sex:M
+  sex:F
+  
+  
+ [kubeadm@masnode1 ~]$ cat  weby.yml                
+apiVersion: v1
+kind: Pod
+metadata:
+   name: weby
+
+   labels:
+     app: http
+     creation_method: manual
+     v1: abc 
+spec: 
+   containers:
+    - image: jinling/nginx:alpine0
+      name: weby
+      ports:
+        - containerPort: 80
+          protocol: TCP
+
+
+创建pod 设置label		  
+[kubeadm@masnode1 ~]$ kubectl create -f weby.yml 		  
+[kubeadm@masnode1 ~]$ kubectl get pod --show-labels
+NAME        READY   STATUS    RESTARTS   AGE     LABELS
+myweb       1/1     Running   1          4h23m   run=myweb
+webx        1/1     Running   0          83m     <none>
+weby        1/1     Running   0          57s     app=http,creation_method=manual,v1=abc 
+
+将已有的pod 设置标签
+kubectl label pod myweb creation_method=manual
+
+修改已有的label
+kubectl label  pod weby creation_method=cmd  --overwrite
+
+kubectl get pod -L creation_method,v1  显示所有pod 但对含有creation_method和v1 的KEY做标注
+
+过滤Label
+kubectl get pod --show-labels
+kubectl get pod -L creation_method -l creation_method
+kubectl get pod -L creation_method -l creation_method=cmd
+kubectl get pod -l '!app'
+kubectl get pod -l 'app!=web' -L app
+kubectl get pod -l app=web,creation_method=cmd
+kubectl get pod -l app=web,creation_method=cmd -L app,creation_method
+
+
+设置label和节点的关联
+[kubeadm@masnode1 ~]$ kubectl label node wornode1.example.com app=os
+node/wornode1.example.com labeled
+[kubeadm@masnode1 ~]$ kubectl get  nodes
+NAME                   STATUS   ROLES    AGE     VERSION
+masnode1.example.com   Ready    master   7h10m   v1.15.3
+wornode1.example.com   Ready    <none>   7h6m    v1.15.3
+wornode2.example.com   Ready    <none>   6h56m   v1.15.3
+wornode3.example.com   Ready    <none>   6h32m   v1.15.3
+[kubeadm@masnode1 ~]$ kubectl get  nodes -l app=os
+NAME                   STATUS   ROLES    AGE    VERSION
+wornode1.example.com   Ready    <none>   7h6m   v1.15.3
+
+
+注解 
+$ kubectl annotate pod yourweb  xms.com/class="cloud compute"
+$ kubectl describe pod yourweb 
+
+
+命名空间
+kubectl get pods
+  170  kubectl get pods -n kube-system
+  171  kubectl get pods -n defaults
+  172  kubectl get pods -n default
+  173  kubectl get namespaces 
+  174  kubectl get pods -n kube-public
+  175  kubectl get pods -n kube-node-lease
+  176  kubectl create ns skyspace1
+  177  kubectl create ns skyspace2
+  178  vim skyspace3.yml
+  179  kubectl create -f skyspace3.yml 
+  180  kubectl get ns
+  181  kubectl create -f webz.yml
+  182  kubectl create -f webz.yml -n skyspace1
+  183  kubectl get pod -n skyspace1
+  184  hits
+  185  history 
+[kubeadm@masnode1 ~]$ cat skyspace3.yml 
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skyspace3
+  
+  
+  
+kubectl delete pod myweb 
+  190  kubectl get pod 
+  191  kubectl delete pod webx weby
+  192  kubectl delete pod -l creation_method=manual
+  193  kubectl delete ns skyspace3
+  194  kubectl get ns
+  195  kubectl get pod
+  196  kubectl delete pod --all 
+  197  kubectl get pod
+  198  kubectl delete rc www
+  199  kubectl get pod
+  200  kubectl delete pod --all 
+  201  kubectl get pod  
+  
+  204  kubectl delete svc --all
+  205  kubectl get svc
+  206  kubectl delete all --all
+
+
+
+
+
+

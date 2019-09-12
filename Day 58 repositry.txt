@@ -1,0 +1,295 @@
+    1  hostnamectl set-hostname Server01.example.com
+    2  sed '/^SELINUX/s/enforcing/disabled/' /etc/selinux/config 
+    3  sed -i '/^SELINUX/s/enforcing/disabled/' /etc/selinux/config 
+    4  systemctl disable firewalld
+    5  nmcli conn show
+    6  uuidgen ens33
+    7  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+    8  reboot
+    9  systemctl poweroff
+   10  vi deploy101.sh 
+   11  ./deploy101.sh
+   12  poweroff
+   13  vi deploy101.sh 
+   14  ./deploy101.sh
+   15  poweroff
+   16  hostnamectl set-hostname masnode1.example.com
+   17  vi /etc/hosts
+   18  poweroff
+   19  ssh 192.168.0.100 getenforce
+   20  exit
+   21  cat /etc/os-release 
+   22  uname -r
+   23  yum install yum-utils device-mapper-persistent-data lvm2
+   24  docker version
+   25  yum install docker-ce-18.06.2.ce
+   26  history 
+   27  yum-config-manager --add-repo=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+   28  ls /etc/yum.repos.d/
+   29  cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+   30  [kubernetes]
+   31  name=Kubernetes
+   32  baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+   33  enabled=1
+   34  gpgcheck=0
+   35  EOF
+   36  ls
+   37  ls /etc/yum.repos.d/
+   38  rm -f /etc/yum.repos.d/mirrors.aliyun*
+   39  ls /etc/yum.repos.d/
+   40  cat <<EOF >  /etc/sysctl.d/k8s.conf
+   41  net.bridge.bridge-nf-call-ip6tables = 1
+   42  net.bridge.bridge-nf-call-iptables = 1
+   43  EOF
+   44  sysctl --system
+   45  kubeadm init --config kubeadm.yml 
+   46  cat /proc/sys/net/ipv4/ip_forward
+   47  cat <<EOF >  /etc/sysctl.d/k8s.conf
+   48  net.bridge.bridge-nf-call-ip6tables = 1
+   49  net.bridge.bridge-nf-call-iptables = 1
+   50  net.ipv4.ip_forward = 1
+   51  EOF
+   52  sysctl --system
+   53  cat /proc/sys/net/ipv4/ip_forward
+   54  kubeadm init --config kubeadm.yml 
+   55  docker pull image k8s.gcr.io/kube-apiserver:v1.15.0
+   56  docker  image pull k8s.gcr.io/kube-apiserver:v1.15.0
+   57  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/kube-apiserver:v1.15.0
+   58  docker image ls
+   59  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/kube-controller-manager:v1.15.0
+   60  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/kube-scheduler:v1.15.0
+   61  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/kube-proxy:v1.15.0
+   62  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/pause:3.1
+   63  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/etcd:3.3.10
+   64  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1
+   65  docker image ls
+   66  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/kube-apiserver:v1.15.0 k8s.gcr.io/kube-apiserver:v1.15.0
+   67  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/kube-proxy k8s.gcr.io/kube-proxy:v1.15.0
+   68  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/kube-proxy:v1.15.0 k8s.gcr.io/kube-proxy:v1.15.0
+   69  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/kube-controller-manager:v1.15.0 k8s.gcr.io/kube-controller-manager:v1.15.0
+   70  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/kube-scheduler:v1.15.0 k8s.gcr.io/kube-scheduler:v1.15.0
+   71  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1 k8s.gcr.io/coredns:1.3.1
+   72  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/etcd:3.3.10 k8s.gcr.io/etcd:3.3.10
+   73  docker tag registry.cn-shanghai.aliyuncs.com/fkfgw/pause:3.1  k8s.gcr.io/coredns:1.3.1
+   74  docker image ls
+   75  docker image ls|wc -l
+   76  docker image rm registry.cn-shanghai.aliyuncs.com*
+   77  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/kube-scheduler:v1.15.0 
+   78  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1 
+   79  docker image ls|wc -l
+   80  docker image ls |grep k8
+   81  docker image ls |grep pa
+   82  docker image tag registry.cn-shanghai.aliyuncs.com/fkfgw/pause:3.1 k8s.gcr.io/pause:3.1 
+   83  docker image ls|wc -l
+   84  docker image ls |grep k8
+   85  docker image ls |grep k8|wc -l
+   86  docker image ls |grep ali
+   87  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/kube-proxy:v1.15.0 
+   88  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/kube-apiserver:v1.15.0 
+   89  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/kube-controller-manager:v1.15.0 
+   90  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/etcd:3.3.10 
+   91  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/pause:3.1 
+   92  docker pull registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1
+   93  docker image tag registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1 k8s.gcr.io/coredns:1.3.1
+   94  docker image rm registry.cn-shanghai.aliyuncs.com/fkfgw/coredns:1.3.1 
+   95  poweroff
+   96  docker image ls
+   97  docker image rm k8s.gcr.io/coredns:1.3.1 
+   98  docker image ls
+   99  ansible-doc -s yum
+  100  tail -5 /etc/ansible/hosts 
+  101  tail -10 /etc/ansible/hosts 
+  102  ssh 192.168.0.101 docker version
+  103  ssh 192.168.0.102 docker version
+  104  ssh 192.168.0.101 yum-config-manager --add-repo=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+  105  ssh 192.168.0.102 yum-config-manager --add-repo=https://mirrors.aliyun.com/kubernetes/yum/repos/ku
+  106  ssh 192.168.0.101 yum -y kubeadm kubelet
+  107  ssh 192.168.0.101 'yum mak
+  108  ssh 192.168.0.101 yum -y install kubeadm kubelet
+  109  ssh 192.168.0.102 yum -y install kubeadm kubelet
+  110  history 
+  111  docker info
+  112  systemctl enable --now kubelet
+  113  cat <<EOF >  /etc/sysctl.d/k8s.conf
+  114  net.bridge.bridge-nf-call-ip6tables = 1
+  115  net.bridge.bridge-nf-call-iptables = 1
+  116  EOF
+  117  vim /etc/hosts
+  118  ssh-keygen -t rsa
+  119  ssh-copy-id 192.168.0.101
+  120  ssh-copy-id 192.168.0.102
+  121  scp /etc/hosts 192.168.0.101:/etc/hosts
+  122  scp /etc/hosts 192.168.0.102:/etc/hosts
+  123  ssh 192.168.0.100
+  124  ssh-copy-id 192.168.0.100
+  125  ssh 192.168.0.100 getenforce
+  126  ssh 192.168.0.101 getenforce
+  127  ssh 192.168.0.102 g
+  128  ssh 192.168.0.101 systemctl is-enabled firewalld
+  129  ssh 192.168.0.102 systemctl is-enabled firewalld
+  130  ssh 192.168.0.100 yum install epel-release -y
+  131  yum install ansible
+  132  vi /etc/ansible/hosts 
+  133  ansible work -m yum -a 'state=present name=epel-release'
+  134  ansible-doc -l
+  135  ansible-doc -s url
+  136  ansible all -m get_url -a 'url=https://download.docker.com/linux/centos/docker-ce.repo dest=/etc/yum.repos.d/'
+  137  yum makecache fast
+  138  yum list
+  139  yum list |grep docker-ce
+  140  yum list docker-ce.x86_64
+  141  yum list docker-ce.x86_64 --showduplicates
+  142  ansible all -m yum -a 'name=docker-ce-18.09.7-3.el7 state=present'
+  143  docker -V
+  144  docker version
+  145  ansible all -m service -a 'name=docker state=start enable=yes'
+  146  docker version
+  147  ansible all -m service -a 'name=docker state=started enable=yes'
+  148  docker version
+  149  systemctl start docker
+  150  systemctl status docker
+  151  systemctl is-enables docker
+  152  systemctl is-enabled docker
+  153  docker version
+  154  ansible all -m service -a 'name=docker.service state=started enable=yes'
+  155  ansible all -m service -a 'name=docker.service state=started enabled=yes'
+  156  yum-config-manager --help
+  157  yum-config-manager --add-repo=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+  158  ls /etc/yum.repos.d/
+  159  yum makecache fast
+  160  ls /etc/yum.repos.d/
+  161  rm /etc/yum.repos.d/packages.cloud.google.com_yum_repos_kubernetes-el7-x86_64.repo
+  162  yum-config-manager --add-repo=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+  163  yum list
+  164  yum list |grep kubernetes
+  165  yum list |grep kube
+  166  yum install kubeamd kubelet kubectl
+  167  cat /proc/sys/net/bridge/bridge-nf-call-iptables 
+  168  cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 
+  169  cat /proc/sys/net/ipv4/ip_forward
+  170  free
+  171  swapoff -a
+  172  free
+  173  vim /etc/fstab 
+  174  cat /sys/class/dmi/id/product_uuid
+  175  ssh 192.168.0.101 cat /sys/class/dmi/id/product_uuid
+  176  ssh 192.168.0.102 cat /sys/class/dmi/id/product_uuid
+  177  ssh 192.168.0.100 cat /sys/class/dmi/id/product_uuid
+  178  ssh 192.168.0.100 ip link
+  179  ssh 192.168.0.101 ip link
+  180  ls /var/run/docker.sock
+  181  ls /run/containerd/containerd.sock
+  182  ls /var/run/crio/crio.sock
+  183  mkdir /etc/docker
+  184  vim /etc/docker/daemon.json
+  185  cat > /etc/docker/daemon.json <<EOF
+  186  {
+  187    "exec-opts": ["native.cgroupdriver=systemd"],
+  188    "log-driver": "json-file",
+  189    "log-opts": {
+  190      "max-size": "100m"
+  191    },
+  192    "storage-driver": "overlay2",
+  193    "storage-opts": [
+  194      "overlay2.override_kernel_check=true"
+  195    ]
+  196  }
+  197  EOF
+  198  mkdir -p /etc/systemd/system/docker.service.d
+  199  systemctl daemon-reload
+  200  systemctl restart docker
+  201  systemctl enable --now kubelet
+  202  yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+  203  vim /etc/yum.repos.d/mirrors.aliyun.com_kubernetes_yum_repos_kubernetes-el7-x86_64_.repo 
+  204  yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+  205  scp /etc/yum.repos.d/mirrors.aliyun.com_kubernetes_yum_repos_kubernetes-el7-x86_64_.repo 192.168.0.101:/etc/yum.repos.d
+  206  scp /etc/yum.repos.d/mirrors.aliyun.com_kubernetes_yum_repos_kubernetes-el7-x86_64_.repo 192.168.0.102:/etc/yum.repos.d
+  207  ls /etc/systemd/system/docker.service.d
+  208  yum update
+  209  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml
+  210  wget https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml
+  211  vim kube-flannel.yml 
+  212  kubectl apply -f kube-flannel.yml 
+  213  kubeadm config print
+  214  kubeadm config print init-defaults
+  215  kubeadm config print init-defaults > kubeadm.yml
+  216  vim kubeadm.yml 
+  217  ping z.cn
+  218  ssh 192.168.0.101 ping z.cn
+  219  ssh 192.168.0.102 ping z.cn
+  220  docker version
+  221  cat <<EOF >  /etc/sysctl.d/k8s.conf
+  222  net.bridge.bridge-nf-call-ip6tables = 1
+  223  net.bridge.bridge-nf-call-iptables = 1
+  224  EOF
+  225  cat /etc/sysctl.d/k8s.conf
+  226  sysctl --system
+  227  abrt-cli list --since 1568187922
+  228  rm .kubeadm.yml.swp 
+  229  vim kube
+  230  vim kubeadm.yml 
+  231  cat <<EOF >  /etc/sysctl.d/k8s.conf
+  232  net.bridge.bridge-nf-call-ip6tables = 1
+  233  net.bridge.bridge-nf-call-iptables = 1
+  234  net.ipv4.ip_forward = 1
+  235  EOF
+  236  sysctl --system
+  237  poweroff
+  238  id kubeadm
+  239  ls
+  240  vim kubeadm.yml 
+  241  docker image ls
+  242  kubeadm init --config kubeadm.yml 
+  243  docker image ls
+  244  docker image ls -q
+  245  docker save -o k8simage d235b23c3570 201c7a840312 2d3813851e87 8328bb49b652 ff281650a721 eb516548c180 2c4adeb21b4f da86e6ba6ca1
+  246  scp k8simage 192.168.0.101:/root
+  247  scp k8simage 192.168.0.102:/root
+  248  cat /etc/hosts
+  249  vi /etc/hosts
+  250  scp /etc/hosts 192.168.0.101:/etc/hosts
+  251  scp /etc/hosts 192.168.0.102:/etc/hosts
+  252  ssh-copy-id 192.168.0.103
+  253  scp /etc/hosts 192.168.0.103:/etc/hosts
+  254  scp k8simage 192.168.0.103:/root
+  255  docker version
+  256  history 
+  257  vi /etc/ansible/hosts 
+  258  ansible all -m yum -a 'name=docker-ce-18.09.7-3.el7 state=present'
+  259  docker -V
+  260  history 
+REPOSITORY                           TAG                 IMAGE ID            CREATED             SIZE
+k8s.gcr.io/kube-proxy                v1.15.0             d235b23c3570        2 months ago        82.4MB
+k8s.gcr.io/kube-apiserver            v1.15.0             201c7a840312        2 months ago        207MB
+k8s.gcr.io/kube-scheduler            v1.15.0             2d3813851e87        2 months ago        81.1MB
+k8s.gcr.io/kube-controller-manager   v1.15.0             8328bb49b652        2 months ago        159MB
+quay.io/coreos/flannel               v0.11.0-amd64       ff281650a721        7 months ago        52.6MB
+k8s.gcr.io/coredns                   1.3.1               eb516548c180        8 months ago        40.3MB
+k8s.gcr.io/etcd                      3.3.10              2c4adeb21b4f        9 months ago        258MB
+k8s.gcr.io/pause                     3.1                 da86e6ba6ca1        21 months ago       742kB
+
+
+docker tag d235b23c3570 k8s.gcr.io/kube-proxy:v1.15.0
+docker tag 201c7a840312 k8s.gcr.io/kube-apiserver:v1.15.0
+docker tag 2d3813851e87 k8s.gcr.io/kube-scheduler:v1.15.0
+docker tag 8328bb49b652 k8s.gcr.io/kube-controller-manager:v1.15.0
+docker tag ff281650a721 quay.io/coreos/flannel:v0.11.0-amd64
+docker tag eb516548c180 k8s.gcr.io/coredns:1.3.1
+docker tag 2c4adeb21b4f k8s.gcr.io/etcd:3.3.10
+docker tag da86e6ba6ca1 k8s.gcr.io/pause:3.1
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.0.100:6443 --token abcdef.0123456789abcdef     --discovery-token-ca-cert-hash sha256:18d575fd996301b3bce7c409d237bc9026090306918ba3249c9880e11a679705 
