@@ -1,0 +1,562 @@
+Service分类
+1.ClusterIP  自动分配服务地址IP 固定
+1.1 headless service
+2.NodePort   
+3.LoadBalancer（4层）  ------- Ingress （Nginx 7层  使用单一入口IP  对用多个主机名 Nginx分发到指定Deployment--POD ）
+3.1 NGINX Ingress Controller for Kubernetes
+4.ExternalName
+
+===================
+[kubeadm@masnode1 ~]$ kubectl apply -f nginx-deploy.yaml              
+deployment.extensions/nginx-deploy created
+[kubeadm@masnode1 ~]$ cat nginx-deploy.yaml              
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy
+    spec:
+      containers:
+      - name: nginx-deploy
+        image: jinling/nginx:alpine0
+
+3.LoadBalancer（ 四层代理 没有 ingress）
+[kubeadm@masnode1 ~]$ kubectl create -f nginx-deploy-svc-loadbalancer.yaml
+service/nginx-deploy-svc-loadbalancer created
+[kubeadm@masnode1 ~]$ cat nginx-deploy-svc-loadbalancer.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc-loadbalancer
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx-deploy
+  ports:
+  - port: 80	
+  
+  
+  
+Ingress（Nginx 七层代理）  
+kubernetes在github上一个项目ingress-nginx
+https://github.com/kubernetes
+https://kubernetes.github.io/ingress-nginx/
+
+第一步： 在master节点上运行
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+[kubeadm@masnode1 ~]$ kubectl get pod -n ingress-nginx
+NAME                                        READY   STATUS    RESTARTS   AGE
+nginx-ingress-controller-79f6884cf6-6sf56   1/1     Running   0          4m2s
+[kubeadm@masnode1 ~]$ 
+
+第二部（依据平台 目前支持 Google云 AWS云 微软云 裸金属）
+Bare-metal¶
+Using NodePort:
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
+
+第三步 验证
+kubectl get pods --all-namespaces -l app.kubernetes.io/name=ingress-nginx 
+
+第四步 Basic usage - host based routing
+
+
+web3.example.com
+web4.example.com
+
+4.1 建立 deployment----（3POD）
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy3
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy3
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy3
+    spec:
+      containers:
+      - name: nginx-deploy3
+        image: jinling/nginx:alpine0
+4.2 建立 svc--deployment （默认ClusterIP）
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc3
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-deploy3
+  ports:
+  - port: 80
+4.3 建立 Ingress---svc 参见 https://kubernetes.github.io/ingress-nginx/user-guide/basic-usage/
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web3
+spec:
+  rules:
+  - host: web3.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc3
+          servicePort: 80
+
+合并文件（deployment  svc  ingress）
+kubectl apply -f ingress-svc-depoy.yaml
+
+注意端口
+[kubeadm@masnode1 ~]$ kubectl get svc -n ingress-nginx
+NAME            TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx   NodePort   10.97.85.73   <none>        80:31240/TCP,443:31706/TCP   71m
+注意ingree服务对外暴露端口为HTTP 31240和 HTTPS 31706
+web1/web2/web3/web3在生产环境中使用 EXTERNAL-IP
+本实验环境中使用任意节点IP即可 哪个节点都可以 例如：
+[kubeadm@masnode1 ~]$ cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.0.100 masnode1.example.com
+192.168.0.101 wornode1.example.com web3.example.com
+192.168.0.102 wornode2.example.com web1.example.com web2.example.com
+192.168.0.103 wornode3.example.com web4.example.com
+192.168.0.104 wornode4.example.com
+192.168.0.105 wornode5.example.com
+192.168.0.106 wornode6.example.com
+
+
+
+[kubeadm@masnode1 ~]$ curl web1.example.com:31240
+Hi. Welcome visit my web 1b25b3a5683e
+[kubeadm@masnode1 ~]$ curl web2.example.com:31240
+Hi. Welcome visit my web Version 2.0 61ba795224e1
+[kubeadm@masnode1 ~]$ curl web3.example.com:31240
+Hi. Welcome visit my web 1b25b3a5683e
+[kubeadm@masnode1 ~]$ curl web4.example.com:31240
+
+
+
+HTTPS
+
+$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=nginxsvc/O=nginxsvc"
+Generating a 2048 bit RSA private key
+................+++
+................+++
+writing new private key to 'tls.key'
+-----
+
+$ kubectl create secret tls tls-secret --key tls.key --cert tls.crt
+secret "tls-secret" created
+
+[kubeadm@masnode1 certificate]$ cat ingress-svc-depoy-https.yaml 
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy5
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy5
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy5
+    spec:
+      containers:
+      - name: nginx-deploy5
+        image: jinling/nginx:alpine0
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc5
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-deploy5
+  ports:
+  - port: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web5
+spec:
+  tls:
+  - hosts:
+    - web5.example.com
+    secretName: tls-secret
+  rules:
+  - host: web5.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc5
+          servicePort: 80
+		  
+$ kubectl  apply -f ingress-svc-depoy-https.yaml 		  
+		  
+看端口
+[kubeadm@masnode1 certificate]$ kubectl get svc -n ingress-nginx
+NAME            TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx   NodePort   10.97.85.73   <none>        80:31240/TCP,443:31706/TCP   107m
+
+
+写hosts文件（DNS）
+192.168.0.101 web1.example.com web.example.com web2.example.com web3.example.com web4.example.com web5.example.com
+
+[kubeadm@masnode1 certificate]$ kubectl get svc -n ingress-nginx
+NAME            TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx   NodePort   10.97.85.73   <none>        80:31240/TCP,443:31706/TCP   107m
+https://web5.example.com:31706
+
+
+
+存活探针
+有Deployment或RS和RC等控制器管理的Pod 
+在Pod本身出现问题 可以重启Pod
+但是Pod内部容器里的进程出问题 K8s必须有一种检测方式能够检测容器内部
+livenessProbe
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pody
+  namespace: default
+  labels:
+    app: webtest
+spec:
+  containers:
+  - name: pody
+    image: jinling/nginx:alpine0
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+	  
+	  
+测试方法一  进入pod 删除index文件	此时探针访问失败
+[kubeadm@masnode1 ~]$ kubectl exec -it pody -- sh
+/usr/share/nginx/html # rm index.html 
+
+通过命令 [kubeadm@masnode1 ~]$ kubectl describe pod pody  看到
+
+ Warning  Unhealthy  5m5s (x6 over 7m45s)  kubelet, wornode1.example.com  Liveness probe failed: HTTP probe failed with statuscode: 403
+  Normal   
+  5m5s (x2 over 7m25s)  kubelet, wornode1.example.com  Container pody failed liveness probe, will be restarted
+
+[kubeadm@masnode1 ~]$ kubectl get pod 
+NAME   READY   STATUS    RESTARTS   AGE
+pody   1/1     Running   2          10m
+
+可见 RESTARTS 若干次
+
+
+
+
+就绪探针
+设置一个检测条件 来告知K8S 该POD是否可以工作
+
+[kubeadm@masnode1 ~]$ cat nginx-deployreadinessProbe.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy
+    spec:
+      containers:
+      - name: nginx-deploy
+        image: jinling/nginx:alpine0
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /var/testfile  
+			
+			
+[kubeadm@masnode1 ~]$ kubectl get pod
+NAME                            READY   STATUS    RESTARTS   AGE
+nginx-deploy-745bcd74f8-fq5kq   1/1     Running   0          5m26s
+nginx-deploy-745bcd74f8-mnrk9   0/1     Running   0          5m26s
+nginx-deploy-745bcd74f8-ns5t9   0/1     Running   0          5m26s
+pody                            1/1     Running   2          28m
+[kubeadm@masnode1 ~]$ kubectl exec -it  nginx-deploy-745bcd74f8-mnrk9 -- touch /var/testfile
+[kubeadm@masnode1 ~]$ kubectl get pod
+NAME                            READY   STATUS    RESTARTS   AGE
+nginx-deploy-745bcd74f8-fq5kq   1/1     Running   0          5m57s
+nginx-deploy-745bcd74f8-mnrk9   1/1     Running   0          5m57s
+nginx-deploy-745bcd74f8-ns5t9   0/1     Running   0          5m57s
+pody                            1/1     Running   2          28m
+[kubeadm@masnode1 ~]$ kubectl exec -it  nginx-deploy-745bcd74f8-mnrk9 -- rm /var/testfile 
+
+
+
+特殊的服务
+1.HeadLess Service
+  不需要负载均衡 不需要ServiceIP
+Pod 文件
+[kubeadm@masnode1 ~]$ cat pody.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pody
+  namespace: default
+  labels:
+    app: webtest
+spec:
+  containers:
+  - name: pody
+    image: jinling/nginx:alpine0
+	
+	
+svc 五头文件 （ClusterIP服务 不设置吧IP）
+[kubeadm@masnode1 ~]$ cat nginx-pod-svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc-headless
+  namespace: default
+spec:
+  type: ClusterIP
+  clusterIP: "None"
+  selector:
+    app: webtest
+  ports:
+  - port: 80
+
+查看SVC
+[kubeadm@masnode1 ~]$ kubectl get svc
+NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+kubernetes           ClusterIP   10.96.0.1        <none>        443/TCP   94m
+nginx-svc-headless   ClusterIP   None             <none>        80/TCP    19m
+
+测试 外界无法访问
+内部 任意一个pod
+用podx
+kubectl run podx --image=jinling/nginx:alpine0 --generator=run-pod/v1
+kubectl exec -it podx -- wget -O - -q nginx-svc-headless.default.svc.cluster.local  
+或用pody自己
+kubectl exec -it pody -- wget -O - -q nginx-svc-headless
+kubectl exec -it pody -- wget -O - -q nginx-svc-headless.default.svc.cluster.local
+
+
+
+不使用固定ClusterIP访问
+使用更加唯一的主机名 
+无头服务 的服务名 加上 名字空间.svc.cluster.local
+在pod之间访问
+
+$ kubectl exec -it pody -- wget -O - -q nginx-svc-headless
+Hi. Welcome visit my web 1b25b3a5683e
+$ kubectl exec -it pody -- wget -O - -q nginx-svc-headless.default.svc.cluster.local
+Hi. Welcome visit my web 1b25b3a5683e
+
+必须有DNS服务器
+coreDNS
+
+
+第4中服务 ExternalName:不使用本地Pod 只是指向外部站点
+注意 实际上 是别名
+下面例子 
+svc-exter 对应 www.ibm.com
+最终 K8S内部CoreDNS 做出 CNAME解析
+
+[kubeadm@masnode1 ~]$ cat svc-external.yaml           
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-exter
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: www.ibm.com
+[kubeadm@masnode1 ~]$ kubectl create -f svc-external.yaml      
+service/svc-exter created
+[kubeadm@masnode1 ~]$ kubectl get svc                            
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+kubernetes           ClusterIP      10.96.0.1        <none>        443/TCP   120m
+nginx-svc            ClusterIP      10.110.122.163   <none>        80/TCP    47m
+nginx-svc-headless   ClusterIP      None             <none>        80/TCP    45m
+svc-exter            ExternalName   <none>           www.ibm.com   <none>    3s 
+
+验证
+[kubeadm@masnode1 ~]$ kubectl exec -it podx -- ping svc-exter.default.svc.cluster.local
+PING svc-exter.default.svc.cluster.local (223.111.110.250): 56 data bytes
+64 bytes from 223.111.110.250: seq=0 ttl=127 time=8.467 ms
+
+[kubeadm@masnode1 ~]$ kubectl exec -it podx -- ping svc-exter
+PING svc-exter (223.111.110.250): 56 data bytes
+64 bytes from 223.111.110.250: seq=0 ttl=127 time=8.152 ms
+
+
+-----
+将外部磁盘挂载到Pod里的容器的目录
+--使得数据持久化（Pod重启 数据因为存放在外部磁盘 仍然保存）
+以下卷类型：
+emptyDir
+hostPath
+gitRepo
+nfs
+gcePersistentDisk
+awsElasticBlockStore
+azureDisk
+cinder
+cephfs
+iscsi
+glusterfs
+rbd
+configMap
+secret
+downwardAPI
+persietenVolumeClaim
+
+单个container可以使用多种卷
+
+
+通过卷共享数据
+emptyDir 存放临时数据
+Pod（2 container）
+
+
+
+建一个YAML文件（1POD 2C vol emptyDir）
+[kubeadm@masnode1 ~]$ cat vol-emptydir.yaml
+[kubeadm@masnode1 ~]$ cat vol-emptydir.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vol-emptydir
+spec:
+  containers:
+  - name: webserver
+    image: nginx:latest
+    volumeMounts:
+    - name: html-content
+      mountPath: /usr/share/nginx/html
+      readOnly: true    
+    
+
+  - name: content-generator
+    image: jinling/fortune-gen:v1
+    volumeMounts:
+    - name: html-content
+      mountPath: /www/html
+  volumes:
+  - name: html-content
+    emptyDir: {}
+
+
+[kubeadm@masnode1 ~]$ kubectl create -f vol-emptydir.yaml
+[kubeadm@masnode1 ~]$ kubectl get pod -o wide
+NAME           READY   STATUS    RESTARTS   AGE     IP           NODE                   NOMINATED NODE   READINESS GATES
+vol-emptydir   2/2     Running   0          6m56s   10.244.2.56   wornode2.example.com   <none>           <none>	
+
+[kubeadm@masnode1 ~]$ curl 10.244.2.56
+Q:      How do you shoot a blue elephant?
+A:      With a blue-elephant gun.
+
+Q:      How do you shoot a pink elephant?
+A:      Twist its trunk until it turns blue, then shoot it with
+        a blue-elephant gun.
+[kubeadm@masnode1 ~]$ curl 10.244.2.56
+I do desire we may be better strangers.
+                -- William Shakespeare, "As You Like It"	
+	
+	
+！！！！！！！！	
+缺少 jinling/fortune-gen:v1
+mkdir /myproject10
+
+[root@masnode1 myproject10]# cat forturn10.sh 
+#!/bin/bash
+trap "exit" SIGINT
+mkdir -p /www/html
+while :
+do
+ /usr/games/fortune > /www/html/index.html
+ sleep 5
+done
+
+[root@masnode1 myproject10]# cat Dockerfile 
+FROM ubuntu:latest
+RUN apt-get update && apt-get -y install fortune
+ADD forturn10.sh /bin/forturn10.sh
+RUN chmod +x /bin/forturn10.sh
+ENTRYPOINT /bin/forturn10.sh
+
+
+[root@masnode1 myproject10]# docker  build -t jinling/fortune-gen:v1 .
+                            docker  push jinling/fortune-gen:v1
+
+
+
+
+
+
+
+
+
+
+
+
+
+hostPath
+gitRepo
+nfs
+gcePersistentDisk
+awsElasticBlockStore
+azureDisk
+cinder
+cephfs
+iscsi
+glusterfs
+rbd
+configMap
+secret
+downwardAPI
+persietenVolumeClaim
+
+
+
+
+
+
+
+
+
+
+
+
+  

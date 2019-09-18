@@ -1,0 +1,192 @@
+
+gitRepo
+使用Git Repository作为存储
+
+[kubeadm@masnode1 ~]$ cat vol-gitrepo-pod.yaml              
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gitrepo-pod
+spec:
+  containers:
+  - name: example-c
+    image: nginx:latest
+    volumeMounts:
+    - name: jinlingtest-example
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    ports:
+    - containerPort: 80
+      protocol: TCP
+  volumes:
+  - name: jinlingtest-example
+    gitRepo:
+      repository: https://github.com/JinlingTest/example.git
+      revision: master
+      directory: .
+
+[kubeadm@masnode1 ~]$ kubectl create -f vol-gitrepo-pod.yaml
+pod/gitrepo-pod created
+
+	  
+[kubeadm@masnode1 ~]$ curl -s 10.244.1.60
+<HTML>
+<BODY>
+hi this is EXAMPLE.COM V0.1
+</BODY>
+</HTML>	  
+	  
+github资料更新后 Pod不会更新数据 需要删除 重建 Pod （Pod地址会改变）
+
+
+
+hostPath
+持久化存储
+存储在节点
+[root@masnode1 ~]# ssh 192.168.0.101 mkdir /hostdir
+[root@masnode1 ~]# ssh 192.168.0.102 mkdir /hostdir 
+[root@masnode1 ~]# ssh 192.168.0.103 mkdir /hostdir 
+[root@masnode1 ~]# ssh 192.168.0.103 ls -ld /hostdir
+drwxr-xr-x 2 root root 6 9月  18 10:49 /hostdir
+[root@masnode1 ~]# ssh 192.168.0.101 chmod +w /hostdir
+[root@masnode1 ~]# ssh 192.168.0.102 chmod +w /hostdir 
+[root@masnode1 ~]# ssh 192.168.0.103 chmod +w /hostdir 
+[root@masnode1 ~]# ssh 192.168.0.101 touch /hostdir/node1.file
+[root@masnode1 ~]# ssh 192.168.0.102 touch /hostdir/node2.file 
+[root@masnode1 ~]# ssh 192.168.0.103 touch /hostdir/node3.file 
+
+[root@masnode1 ~]# ssh 192.168.0.101 'echo "web1" > /hostdir/index.html' 
+[root@masnode1 ~]# ssh 192.168.0.102 'echo "web2" > /hostdir/index.html'  
+[root@masnode1 ~]# ssh 192.168.0.103 'echo "web3" > /hostdir/index.html' 
+
+
+
+
+[kubeadm@masnode1 ~]$ kubectl create -f vol-hostpath-pod.yaml
+[kubeadm@masnode1 ~]$ cat vol-hostpath-pod.yaml              
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-pod
+spec:
+  containers:
+  - name: hostpath-c
+    image: nginx:latest
+    volumeMounts:
+    - name: host-vol
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: host-vol
+    hostPath:
+      path: /hostdir
+	  
+[kubeadm@masnode1 ~]$ curl -s 10.244.3.64
+web3
+[kubeadm@masnode1 ~]$ kubectl delete -f vol-hostpath-pod.yaml      
+pod "hostpath-pod" deleted
+
+Pod删除 
+volume的数据 不丢失
+[root@masnode1 ~]# ssh 192.168.0.103 'cat /hostdir/index.html'          
+web3
+
+下次启动Pod 如果到另一个Node 则网站显示数据不一致 （此特点适用于Daemonset的控制器）
+[kubeadm@masnode1 ~]$ kubectl create -f vol-hostpath-pod.yaml       
+pod/hostpath-pod created
+
+[kubeadm@masnode1 ~]$ kubectl get pod -o wide                
+NAME           READY   STATUS    RESTARTS   AGE   IP            NODE                   NOMINATED NODE   READINESS GATES
+hostpath-pod   1/1     Running   0          3s    10.244.1.62   wornode1.example.com   [kubeadm@masnode1 ~]$ curl -s 10.244.1.62
+web1	  
+
+
+gcePersistentDisk
+jinling51@cloudshell:~ (reliable-fort-252509)$ gcloud compute disks create --size=1GiB --zone=asia-east1-c cdisk
+
+
+NAME   ZONE          SIZE_GB  TYPE         STATUS
+cdisk  asia-east1-c  1        pd-standard  READY
+
+jinling51@cloudshell:~ (reliable-fort-252509)$ cat vol-gcepv.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+        name: mdb
+spec:
+        containers:
+                - name: mdb-c1
+                  image: mongo:latest
+                  volumeMounts:
+                          - name: vol-gce
+                            mountPath: /data/db
+                  ports:
+                          - containerPort: 27017
+                            protocol: TCP
+        volumes:
+                - name: vol-gce
+                  gcePersistentDisk:
+                          pdName: cdisk
+                          fsType: ext4
+				  
+
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl create -f vol-gcepv.yaml
+pod/mdb created
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl get pod
+NAME      READY   STATUS              RESTARTS   AGE
+mdb       0/1     ContainerCreating   0          17s
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl get pod
+NAME      READY   STATUS    RESTARTS   AGE
+mdb       1/1     Running   0          28s
+
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl exec -it mdb -- mongo
+MongoDB shell version v4.2.0
+
+> use testdb
+switched to db testdb
+> db.students.insert({name:"alice"})
+WriteResult({ "nInserted" : 1 })
+> db.students.insert({name:"bob"})
+WriteResult({ "nInserted" : 1 })
+> db.students.insert({name:"chralie"})
+WriteResult({ "nInserted" : 1 })
+> db.students.find()
+{ "_id" : ObjectId("5d81a8fe23f604388389049f"), "name" : "alice" }
+{ "_id" : ObjectId("5d81a90823f60438838904a0"), "name" : "bob" }
+{ "_id" : ObjectId("5d81a91323f60438838904a1"), "name" : "chralie" }
+> exit
+bye
+
+删除POd 并重建POD 测试持久化云存储（数据库和表 依然存在 即代表持久化）
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl delete -f vol-gcepv.yaml
+pod "mdb" deleted
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl create -f vol-gcepv.yaml
+pod/mdb created
+jinling51@cloudshell:~ (reliable-fort-252509)$ kubectl exec -it mdb -- mongo
+MongoDB shell version v4.2.0
+> use testdb
+switched to db testdb
+> db.students.find()
+{ "_id" : ObjectId("5d81a8fe23f604388389049f"), "name" : "alice" }
+{ "_id" : ObjectId("5d81a90823f60438838904a0"), "name" : "bob" }
+{ "_id" : ObjectId("5d81a91323f60438838904a1"), "name" : "chralie" }
+> exit
+bye
+jinling51@cloudshell:~ (reliable-fort-252509)$
+
+
+
+
+
+awsElasticBlockStore
+azureDisk
+
+nfs
+cinder
+cephfs
+iscsi
+glusterfs
+rbd
+configMap
+secret
+downwardAPI
+persietenVolumeClaim

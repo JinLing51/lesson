@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: webtest
+  ports:
+  - port: 80

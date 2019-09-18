@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web1
+spec:
+  rules:
+  - host: web1.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc
+          servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web2
+spec:
+  rules:
+  - host: web2.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svcv2
+          servicePort: 80

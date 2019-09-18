@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+   name: webz
+
+   labels:
+     app: os
+     creation_method: manual
+     v1: abc 
+spec: 
+   containers:
+    - image: jinling/nginx:alpine0
+      name: webz
+      ports:
+        - containerPort: 80
+          protocol: TCP

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-daemonset-a
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nginx-daemonset-a
+  template:
+    metadata:
+      labels:
+        app: nginx-daemonset-a
+    spec:
+      containers:
+      - name: nginx-daemonset-a
+        image: jinling/nginx:alpine0
+  

@@ -1,0 +1,19 @@
+apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+  name: nginx-rs-a
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-rs-a
+  template:
+    metadata:
+      labels:
+        app: nginx-rs-a
+    spec:
+      containers:
+      - name: nginx-rs-a
+        image: jinling/nginx:alpine0
+  

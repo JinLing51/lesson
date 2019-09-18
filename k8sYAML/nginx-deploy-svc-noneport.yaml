@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc-nodeport
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: nginx-deploy
+  ports:
+  - port: 80

@@ -1,0 +1,93 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy3
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy3
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy3
+    spec:
+      containers:
+      - name: nginx-deploy3
+        image: jinling/nginx:alpine0
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc3
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-deploy3
+  ports:
+  - port: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web3
+spec:
+  rules:
+  - host: web3.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc3
+          servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy4
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy4
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy4
+    spec:
+      containers:
+      - name: nginx-deploy4
+        image: jinling/nginx:alpine2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc4
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-deploy4
+  ports:
+  - port: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web4
+spec:
+  rules:
+  - host: web4.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc4
+          servicePort: 80

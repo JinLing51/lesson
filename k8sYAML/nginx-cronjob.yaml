@@ -1,0 +1,17 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-2min
+  namespace: default
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: calc-pi
+            image: perl
+            command: ["perl","-Mbignum=bpi","-wle","print bpi(200)"]
+          restartPolicy: OnFailure
+  

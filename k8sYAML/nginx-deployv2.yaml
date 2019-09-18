@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployv2
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deployv2
+  template:
+    metadata:
+      labels:
+        app: nginx-deployv2
+    spec:
+      containers:
+      - name: nginx-deployv2
+        image: jinling/nginx:alpine1
+  
