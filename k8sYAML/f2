@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  game.properties: |-
+    enemies=aliens
+    lives=3
+    enemies.cheat=true
+    enemies.cheat.level=noGoodRotten
+    secret.code.passphrase=UUDDLRLRBABAS
+    secret.code.allowed=true
+    secret.code.lives=30
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2019-09-18T05:25:16Z"
+  name: game-config-2
+  namespace: default
+  resourceVersion: "285131"
+  selfLink: /api/v1/namespaces/default/configmaps/game-config-2
+  uid: 6e7db17e-9909-40f3-ac0d-df826b586d42

@@ -173,14 +173,260 @@ switched to db testdb
 bye
 jinling51@cloudshell:~ (reliable-fort-252509)$
 
-
-
-
-
 awsElasticBlockStore
 azureDisk
 
-nfs
+nfs卷
+  17  yum install nfs-utils rpcbind
+   18  mkdir -p /nfsdata1
+   19  chmod +w /nfsdata1
+   20  chown nobody.nobody /nfsdata1
+   21  vim /etc/exports
+   22  systemctl enable nfs
+   23  systemctl enable rpcbind
+   24  systemctl start nfs
+   25  systemctl start rpcbind
+   26  showmount -e 192.168.0.111
+   27  history 
+   
+   在改过/etc/exports之后 可以用 exportfs -rv
+[root@s111 ~]# cat /etc/exports
+/nfsdata1 *(rw,sync)
+
+节点安装nfs客户端和测试
+  355  ansible work -m yum -a 'name=nfs-utils state=present'
+  356  ansible work -m yum -a 'name=rpcbind state=present'
+  357  ssh 192.168.0.101 'showmount -e 192.168.0.111'
+  358  ssh 192.168.0.103 'showmount -e 192.168.0.111'
+  359  ssh 192.168.0.102 'showmount -e 192.168.0.111'
+
+建立PV persistentVolume
+
+accessModes:
+  - ReadWriteOnce    RWO
+  - ReadWriteMany    RWX
+  - ReadOnlyMany     ROX
+
+[kubeadm@masnode1 ~]$ cat nfs111pv.yaml              
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfspv1
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /nfsdata1
+    server: 192.168.0.111
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfspv2
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /nfsdata2
+    server: 192.168.0.111
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfspv3
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  nfs:
+    path: /nfsdata3
+    server: 192.168.0.111
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfspv4
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+  - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /nfsdata4
+    server: 192.168.0.111
+
+[kubeadm@masnode1 ~]$ kubectl create -f nfs111pv.yaml 	
+
+[kubeadm@masnode1 ~]$ kubectl get pv
+NAME     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+nfspv1   1Gi        RWO            Retain           Available           nfs                     62s
+nfspv2   2Gi        RWO            Retain           Available           nfs                     62s
+nfspv3   10Gi       RWX            Retain           Available           slow                    62s
+nfspv4   20Gi       ROX            Retain           Available           nfs                     62s
+---------
+[kubeadm@masnode1 ~]$ cat  pvc-stateful-headless-3pod.yaml                
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hl-svc
+spec:
+  selector:
+    app: niginxtest
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 27017  
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stateful1
+spec:
+  selector:
+    matchLabels:
+      app: nginxtest
+  serviceName: nginxsvc
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginxtest
+    spec:
+      containers:
+      - name: nginxtest
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nfs-data
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: nfs-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "nfs"
+      resources:
+        requests:
+          storage: 1Gi
+
+ kubectl apply -f  pvc-stateful-headless-3pod.yaml
+---------
+
+
+
+
+
+如果还要加一个PV 直接在原yaml文件加一段（前提 NFS服务器配置好）
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfspv5
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /nfsdata5
+    server: 192.168.0.111
+	
+直接用apply 不用create
+apply 相当于create和重配置结合 （create只能运行一遍 apply运行多遍）
+[kubeadm@masnode1 ~]$ kubectl apply -f nfs111pv.yaml 
+
+[kubeadm@masnode1 ~]$ kubectl get pv
+NAME     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                          STORAGECLASS   REASON   AGE
+nfspv1   1Gi        RWO            Retain           Bound       default/nfs-data-stateful1-0   nfs                     74m
+nfspv2   2Gi        RWO            Retain           Bound       default/nfs-data-stateful1-1   nfs                     74m
+nfspv3   10Gi       RWX            Retain           Available                                  slow                    74m
+nfspv4   20Gi       ROX            Retain           Available                                  nfs                     74m
+nfspv5   50Gi       RWO            Retain           Available                                  nfs                     3s
+
+[kubeadm@masnode1 ~]$ kubectl get pvc
+NAME                   STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+nfs-data-stateful1-0   Bound    nfspv1   1Gi        RWO            nfs            17m
+nfs-data-stateful1-1   Bound    nfspv2   2Gi        RWO            nfs            17m
+nfs-data-stateful1-2   Bound    nfspv5   50Gi       RWO            nfs            3m28s
+[kubeadm@masnode1 ~]$ kubectl get pod
+NAME           READY   STATUS    RESTARTS   AGE
+gitrepo-pod    1/1     Running   0          5h48m
+hostpath-pod   1/1     Running   0          5h16m
+podx           1/1     Running   0          24h
+pody           1/1     Running   0          24h
+stateful1-0    1/1     Running   0          3m43s
+stateful1-1    1/1     Running   0          3m39s
+stateful1-2    1/1     Running   0          3m35s
+vol-emptydir   2/2     Running   0          22h
+
+验证 
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain   #保持 pod被删除 。。。 PV还依然留着 暂时不能分配至其他Pod  原因就是保护数据
+    persistentVolumeReclaimPolicy: Recycle  ##回收pod被删除 。。。 PV也回收  
+  
+$  kubectl delete svc nginx-hl-svc 
+[kubeadm@masnode1 ~]$  kubectl delete statefulsets.apps stateful1
+
+看到pod以及被删除
+[kubeadm@masnode1 ~]$ kubectl get pod
+NAME           READY   STATUS    RESTARTS   AGE
+gitrepo-pod    1/1     Running   0          6h15m
+hostpath-pod   1/1     Running   0          5h43m
+podx           1/1     Running   0          24h
+pody           1/1     Running   0          25h
+vol-emptydir   2/2     Running   0          22h
+看不到 stateful1-0 stateful1-1 没有了
+
+但是pv还在 bond
+
+kubeadm@masnode1 ~]$ kubectl get pv
+NAME     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                          STORAGECLASS   REASON   AGE
+nfspv1   1Gi        RWO            Retain           Bound       default/nfs-data-stateful1-0   nfs                     103m
+nfspv2   2Gi        RWO            Retain           Bound       default/nfs-data-stateful1-1   nfs                     103m
+
+why？ 因为pv 描述信息中还有 Claim
+[kubeadm@masnode1 ~]$ kubectl get pv nfspv1 -o yaml|grep -A6 claimRef
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: nfs-data-stateful1-0
+    namespace: default
+    resourceVersion: "300638"
+    uid: 11cd13ed-bd52-435c-acf4-5699fdfc1549
+	
+$ kubectl edit pv nfspv1  	
+去除以上
+ 
+
+
+
+
+
+
+	
+
+
+
+
 cinder
 cephfs
 iscsi
