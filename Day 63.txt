@@ -1,0 +1,220 @@
+挂载configmap文件时
+可以指定需要项目挂载 并可以改名
+[kubeadm@masnode1 ~]$ kubectl exec -it nginx-zip-item -- ls /etc/nginx/conf.d  
+conf-gzip.conf
+[kubeadm@masnode1 ~]$ kubectl exec -it nginx-zip -- ls /etc/nginx/conf.d     
+nginx-config-gzip.conf  test.dat
+[kubeadm@masnode1 ~]$ kubectl apply -f pod-nginx-configmap-vol-items.yaml ^C 
+[kubeadm@masnode1 ~]$ cat pod-nginx-configmap-vol-items.yaml                 
+apiVersion: v1
+kind: Pod
+metadata:
+ name: nginx-zip-item
+spec:
+ containers:
+ - image: nginx:latest
+   name: nginx-zip-item-c
+   volumeMounts:
+   - name: configmap-vol-item
+     mountPath: /etc/nginx/conf.d 
+     readOnly: true
+ volumes:
+ - name: configmap-vol-item
+   configMap: 
+     name: nginx-conf
+     items:
+     - key: nginx-config-gzip.conf
+       path: conf-gzip.conf
+
+
+多出 
+     items:
+     - key: nginx-config-gzip.conf   将cm中nginx-config-gzip.conf
+       path: conf-gzip.conf   挂载进Pod 更名为 conf-gzip.conf
+此处 key时列表形式 可以添加更多的文件
+
+
+secret  （用法和cm类似 主要时挂载安全信息   例如 证书 私钥）
+secret的挂载configmap vol 有一个本质区别 （挂载点是 内存）
+
+查看 K8S中的安全通信设置
+每一个POD在和Master节点的Kubernetes API服务器进行通信时使用HTTPS 其中证书 令牌 名字空间
+实现存放在一个对象 secret
+[kubeadm@masnode1 ~]$ kubectl get secrets 
+NAME                  TYPE                                  DATA   AGE
+default-token-m9z4j   kubernetes.io/service-account-token   3      8d
+
+看内容
+$ kubectl get secrets default-token-m9z4j -o yaml
+
+看出三个内容
+证书  令牌 命名空间
+[kubeadm@masnode1 ~]$ kubectl exec -it nginx-zip -- mount
+tmpfs on /run/secrets/kubernetes.io/serviceaccount type tmpfs (ro,relatime)
+看出挂载点是内存 tmpfs
+
+---------------------
+LAB  SSL nginx 的https
+/etc/nginx/conf.d/
+建一个 https.conf 添加证书  开启SSL  TLS 443
+
+1.生成证书和私钥 （最好有CA CA证书  该实验生成的是自签名证书）
+[kubeadm@masnode1 ~]$ mkdir nginxssl
+[kubeadm@masnode1 ~]$ cd nginxssl
+[kubeadm@masnode1 nginxssl]$ openssl  genrsa -out https.key 2048
+Generating RSA private key, 2048 bit long modulus
+.................+++
+..............+++
+e is 65537 (0x10001)
+[kubeadm@masnode1 nginxssl]$ openssl req -new -x509 -key https.key -out https.cert -days 365 
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:jiangsu
+Locality Name (eg, city) [Default City]:nanjing
+Organization Name (eg, company) [Default Company Ltd]:XMS
+Organizational Unit Name (eg, section) []:IT
+Common Name (eg, your name or your server's hostname) []:www.example.com
+Email Address []:admin@example.com
+[kubeadm@masnode1 nginxssl]$ ls
+https.cert  https.key
+[kubeadm@masnode1 nginxssl]$ 
+
+
+2生成secret  -------挂载nginx的证书和私钥
+[kubeadm@masnode1 nginxssl]$ ls
+a.dat  b.dat  https.cert  https.key
+[kubeadm@masnode1 nginxssl]$ kubectl create secret generic nginx-ssl --from-file=/home/kubeadm/nginxssl/
+secret/nginx-ssl created
+
+
+3.生成 configmap -----挂载nginx conf文件
+[kubeadm@masnode1 nginxconf]$ pwd
+/home/kubeadm/nginxconf
+[kubeadm@masnode1 nginxconf]$ cat nginx-config-https.conf
+server {
+ listen 80;
+ listen 443 ssl; 
+ server_name www.example.com;
+ gzip on;
+ gzip_types text/plain application/xml;
+ ssl_certificate certs/https.cert;
+ ssl_certificate_key certs/https.key;
+ ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+ ssl_ciphers HIGH:!aNULL:!MD5;
+ location / {
+ root /usr/share/nginx/html;
+ index index.html index.htm;
+ }
+}
+[kubeadm@masnode1 nginxconf]$ ls
+nginx-config-gzip.conf  nginx-config-https.conf  test.dat
+[kubeadm@masnode1 nginxconf]$ kubectl create configmap nginx-conf --from-file=/home/kubeadm/nginxconf/
+
+
+4.写一个YAML文件 Pod---2container
+1 container 生成内容  （镜像：？？？）
+2. nginx 发布内容 （nginx:latest）
+   用的是临时卷 emptyDir
+3 nginx的配置文件用configmap挂载
+4.nginx 证书用 secret
+5.还有一个cm 只取一个键值 注入到容器中 成为一个变量
+
+
+[kubeadm@masnode1 ~]$ cat pod-2c-gen-ssl.yaml                          
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-ssl
+spec:
+  containers:
+  - name: genereator-c
+    image: jinling/fortune:env
+    volumeMounts:
+    - name: webcontents-v
+      mountPath: /var/htdocs
+    env:
+    - name: SLEEP_INTERVAL
+      valueFrom:
+        configMapKeyRef:
+          name: fortune-literal-5
+          key: sleepinterval
+
+  - name: web-ssl
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+    - containerPort: 443
+    volumeMounts:
+    - name: webcontents-v
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    - name: nginx-conf-v
+      mountPath: /etc/nginx/conf.d/
+      readOnly: true
+    - name: nginx-cert-v
+      mountPath: /etc/nginx/certs
+      readOnly: true
+
+  volumes:
+  - name: webcontents-v
+    emptyDir: {}
+  - name: nginx-conf-v
+    configMap:
+      name: nginx-conf
+      items:
+      - key: nginx-config-https.conf
+        path: https.conf 
+  - name: nginx-cert-v
+    secret:
+      secretName: nginx-ssl
+
+   
+
+关于image   jinling/fortune:env 参见Day 62
+  和configmap    fortune-literal-5 参见Day 62
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+

@@ -1,0 +1,345 @@
+裸金属平台
+windows Server Enterprise Edition
+安装 /账号 /配置网络 IP mask DG DNS 
+IP 分类 子网划分
+工作组----->域环境
+domain controller （建立域 添加DC 删除DC 删除域 添加删除成员服务器）
+member server
+用户/组账号 （默认用户账号administrator 和组账号 administrators operator 。。。）
+
+文件 NTFS 权限 （读 写 执行 修改 完全控制）
+                （继承 禁用继承 有效 ）
+文件 copy move 权限的变化				
+文件共享 （完全控制）
+脱机文件夹 卷影副本
+
+打印服务器
+
+组策略管理域
+
+磁盘管理--分区-分配驱动器号
+MBR GPT
+基本磁盘 ---简单卷
+动态磁盘---跨区卷 带区卷 镜像卷 RAID5卷
+
+windows集群
+FC SAN Cluster
+iSCSI SAN Cluster
+iSCSI SAN 2节点 文件服务器故障转移集群
+
+windows的Web服务器 IIS  ---HTTP
+windows CA 证书服务器
+IIS---HTTPS
+
+
+-----Linux
+shell 命令（ls cp mv useradd cd pwd touch mkdir rm rmdir ....）
+通配符 文件重定向 输出 输入 追加
+vi的使用
+文件查找find
+用户/组账号
+文件权限
+文件特殊权限
+进程控制 kill  pkill 监控 top ps uptime
+作业控制 jobs bg fg
+
+systemd 守护进程的管理
+systemctl start|stop|status|enable|disable
+
+网络管理命令
+nmcli 创建设备 连接 配置ip
+
+tar 命令
+系统间复制scp
+
+yum安装软件
+配置值Linux虚拟化 KVM虚拟机
+
+正则表达式  grep使用
+
+计划任务 cron  at
+
+磁盘管理
+MBR GPT
+传统分区 
+
+LVM 逻辑卷管理
+
+文件共享 NFS Samba
+
+防火墙 firewalld
+
+Python语言
+
+web服务器 apache
+
+客户端
+浏览器
+elinks
+curl
+LAMP==Linux+apache +MySQL +Php
+部署同学录或博客网站 UCenter 
+虚拟主机
+证书 制作了HTTPS
+
+网络管理命令
+nmcli 制作了多网卡绑定 team 实现网卡容错 
+接触JSON语法
+
+SELinux的设置
+安全上下文 标签 
+布尔值控制服务  apache个人主页功能
+控制端口  例子sshd
+
+
+数据库
+oracle数据库安装 建库
+结构化查询语言 SQL语句
+
+SELECT
+DML -INSERT UPDATE DELETE
+DDL-- CREATE ALTER DROP TRUNCATE
+DCL GRANT REVOKE
+TCL COMMIT ROLLBACK 
+
+单表 去重 别名 计算 
+WHERE子句 
+函数 单行函数 字符函数 数组函数 日期函数 通用函数
+组函数
+分组
+子查询 多表查询 外连接 全连接
+SQL92 SQL99
+联合 SET
+
+ISNERT UPDATE DELETE例子
+
+建表 
+约束 （非空 唯一主键 外键 检查）
+建索引
+建视图
+建序列
+
+============
+oracle数据库管理
+数据库实例  进程 内存 
+数据库文件：数据 日志 参数 控制  口令 跟踪 预警 
+逻辑结构数据库 表空间 段 区 块 
+物理结构
+数据文件
+
+
+数据库服务器的启动ing和停止
+startup 三阶段
+shutdown 四命令
+事务 检查点 用户连接
+
+
+数据字典视图
+动态性能视图
+
+oracle网络
+监听器
+客户端
+专用服务器
+共享服务器
+
+oracle账号 权限
+系统权限 
+对象权限
+权限级联
+权限撤销
+角色
+
+配置文件profile 控制资源 控制用户安全设置
+
+表空间创建
+更改表空间 改变大小添加文件
+OMF
+段的认知
+段延迟创建
+段收缩
+
+数据并发
+表锁 TM
+行锁 事务锁 TX
+锁的级别
+v$lock
+
+SEQUENCE序列 
+伪列
+同义词
+
+视图的创建 简单视图 复杂视图
+通过视图修改数据
+
+
+创建索引
+索引的创建规则和性能
+
+oracle的备份
+控制文件复用
+日志文件复用
+归档模式的设置
+
+备份参数
+备份数据
+备份控制五年间
+
+丢失非关键性数据文件的修复
+丢失关键数据文件的修复
+丢失控制文件的修复
+丢失日志的修复
+丢失参数文件的修复
+
+===========
+MySQL数据库
+选择性安装MySQL
+各种数据类型
+数据查询
+数据导入 
+建库 建表
+
+
+服务器配置文件
+ MYsql Client命令
+ MySQL 服务器结构
+ MySQL 变量 状态
+ MYSQl 日志
+ 服务器日志
+ 查询日志
+ 慢查询日志
+ 二进制日志
+ 各种管理
+ 
+ 备份
+ 导出表
+ 导出数据库
+ 导出整个MySQL数据库
+ m'ySQL 登录数据的隐藏 login-path
+ MYSQL root口令破解
+ 
+ MYSQL 主从Master---Slave
+
+MYSQ集群 MySQL Cluster CGE
+
+MySQL读写分离 MyCat
+
+MySQL 主从复制 MGR技术 MySQL Group Replication
+
+MySQL故障转移 MHA
+
+
+
+
+shell语言
+
+python语言
+
+
+LB 集群：LVS  Nginx  Haproxy
+HA 集群： keepalived 
+
+
+监控 Zabbix
+自动化部署 Ansible ad-hoc playbook
+容器 docker
+（image 镜像加速 container network 下载 上传 公共 私有  ）
+容器编排 K8S
+server：API server etcd schedule controller manager 
+client kubelet kube-proxy kubectl
+网络插件 flannel
+安装工具kubadm
+  pod controller（rc rs deployment daemonset job cronjob statefulset ） svc ClusterIP NodePort headless LoadBalancer Ingress 
+裸金属平台
+google云环境
+部署时 网络问题 谷歌k8s的资源的问题
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				

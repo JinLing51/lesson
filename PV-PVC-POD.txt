@@ -1,0 +1,119 @@
+Pod配置PersistentVolumeClaim 
+0. mkdir -p pv/vol1
+
+1，创建PersistentVolume
+cat > pv1.yaml <<EOF -
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv1
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/home/kubeadm/pv/vol1"
+EOF	
+
+kubectl apply -f pv1.yaml
+执行上面配置文件后PersistentVolume被创建，通过命令查看
+kubectl get pv
+
+2，创建PersistentVolumeClaim
+cat > pvc1.yaml <<EOF -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc1
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+EOF	  
+
+$ kubectl apply -f pvc1.yaml
+执行上面配置文件后PersistentVolumeClaim已binding到PersistentVolume，创建后通过命令查看
+kubectl get pvc
+ 3，创建Pod使用PersistentVolumeClaim
+cat > pod1.yaml <<EOF -
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod1
+spec:
+  containers:
+    - name: pod1-c1
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+          name: "nginx-server"
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: vol1
+  volumes:
+    - name: vol1
+      persistentVolumeClaim:
+       claimName: pvc1
+EOF
+
+容器目录/usr/share/nginx/html已挂载到宿主机/mnt/data
+
+查看pod的node
+$ kubectl get pod -o wide 1
+pod1                       1/1     Running   0          6m      10.244.2.61   wornode2.example.com   <none>           <none>
+为节点2
+在 
+[root@wornode2 ~]# mkdir -p /home/kubeadm/pv/vol1/
+[root@wornode2 ~]# echo "this is pv pvc pod test" > /home/kubeadm/pv/vol1/index.html
+可以用curl访问
+[kubeadm@masnode1 ~]$ curl  10.244.2.61      
+this is pv pvc pod test
+
+删除
+$ kubectl delete -f pod1.yaml
+重新部署 
+$ kubectl apply -f pod1.yaml 
+
+看到pod在节点3
+pod1                       1/1     Running   0          37s     10.244.3.77   wornode3.example.com   <none>           <none>
+访问失败
+[kubeadm@masnode1 ~]$ curl  10.244.3.77
+<html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>nginx/1.17.3</center>
+</body>
+</html>
+
+
+
+
+在节点3 见目录 文件
+[root@wornode3 ~]# mkdir -p /home/kubeadm/pv/vol1/
+[root@wornode3 ~]# echo "this is pv pvc pod test" > /home/kubeadm/pv/vol1/index.html
+
+
+
+范文成功
+[kubeadm@masnode1 ~]$ curl  10.244.3.77       
+this is pv pvc pod test
+
+此件实验不适合用local做 用集群存储做可以
+
+
+
+参见官方文档
+
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+https://kubernetes.io/docs/tasks/administer-cluster/change-default-storage-class/
