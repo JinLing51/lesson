@@ -1,0 +1,6 @@
+/nfsdata1 *(rw,sync)
+/nfsdata2 *(rw,sync)
+/nfsdata3 *(rw,sync)
+/nfsdata4 *(rw,sync)
+/nfsdata5 *(rw,sync)
+/nfsdata6 *(rw,sync)
