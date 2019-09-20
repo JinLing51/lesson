@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: nginx-zip-item
+spec:
+ containers:
+ - image: nginx:latest
+   name: nginx-zip-item-c
+   volumeMounts:
+   - name: configmap-vol-item
+     mountPath: /etc/nginx/conf.d 
+     readOnly: true
+ volumes:
+ - name: configmap-vol-item
+   configMap: 
+     name: nginx-conf
+     items:
+     - key: nginx-config-gzip.conf
+       path: conf-gzip.conf
+     - key: test.dat
+       path: test.abc
