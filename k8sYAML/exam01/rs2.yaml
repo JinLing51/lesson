@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+  name: rs2
+  namespace: default
+  labels:
+    rs: rs02
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pod2
+  template:
+    metadata:
+      labels:
+        app: pod2
+    spec:
+       containers:
+       - name: pod2-c1
+         image: nginx:latest
+         ports:
+         - containerPort: 80
+         volumeMounts:
+         - mountPath: "/usr/share/nginx/html"
+           name: vol2
+       volumes:
+       - name: vol2
+         persistentVolumeClaim:
+           claimName: pvc2

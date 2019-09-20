@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv2
+spec:
+  storageClassName: test
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: "/nfsdata6"
+    server: 192.168.0.111
