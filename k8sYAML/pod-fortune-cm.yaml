@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune5s
+spec:
+ containers:
+ - image: jinling/fortune:env
+   env:
+   - name: SLEEP_INTERVAL
+     valueFrom:
+       configMapKeyRef:
+         name: fortune-literal-5
+         key: sleepinterval
+   name: fortune5s-c

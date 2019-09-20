@@ -1,0 +1,446 @@
+1.参数？
+busybox
+CMD ["/bin/httpd","-f","-h","/www/html"]
+2 环境变量 MYSQL_ROOT_PASSWORD
+mysql
+3. 将文件打入容器--------》挂载卷
+   gitRepo volume
+
+1 Passing command-line arguments to containers
+2 Setting custom environment variables for each container
+3 Mounting configuration files into containers through a special type of volume
+
+   
+Dockerfile
+CMD
+ENTRYPOINT
+
+
+1 Passing command-line arguments to containers
+
+UNDERSTANDING ENTRYPOINT AND CMD
+In a Dockerfile, two instructions define the two parts:
+ ENTRYPOINT defines the executable invoked when the container is started.
+ CMD specifies the arguments that get passed to the ENTRYPOINT.
+Although you can use the CMD instruction to specify the command you want to execute
+when the image is run, the correct way is to do it through the ENTRYPOINT instruction
+and to only specify the CMD if you want to define the default arguments. The image can
+then be run without specifying any arguments
+
+
+vim Dockerfile
+FROM busybox:latest
+RUN mkdir -p /www/html   
+RUN echo "this is busybox Dockerfile WEB SERVER" > /www/html/index.html
+EXPOSE 80/tcp
+CMD ["-f","-h","/www/html"]
+ENTRYPOINT ["/bin/httpd"]
+
+
+[root@s211 p01]# docker push jinling/busybox:web01
+
+
+
+[root@masnode1 myproject10]# vim generate_file_arg.sh 
+#!/bin/bash
+trap "exit" SIGINT
+mkdir -p /www/htdoc
+while :
+do
+ /usr/games/fortune > /www/htdoc/index.html
+ sleep $1
+done
+
+
+[root@masnode1 myproject10]# vim Dockerfile 
+FROM ubuntu:latest
+ADD generate_file_arg.sh /bin/generate_file_arg.sh
+RUN chmod +x /bin/generate_file_arg.sh && apt-get update && apt-get -y install fortune
+ENTRYPOINT [ "/bin/generate_file_arg.sh" ]
+CMD [ "5" ]
+
+
+$ docker build -t jinling/fortune:defarg5 .
+上传值docker hub
+$ docker push jinling/fortune:defarg5
+运行容器 使用image里的默认参数 5
+$ docker run -it jinling/fortune:defarg5
+
+===================================================================
+$ sudo docker run --name web5 -d -it jinling/fortune:defarg5 
+root@15070b5b1a76:/# watch -n 5 cat /var/htdocs/index.html
+
+
+===================================================================
+===================================================================
+LAB1：（1 Passing command-line arguments to containers）
+
+$ sudo docker run --name web2 -d -it jinling/fortune:defarg5 2
+$ sudo docker exec -it web2  /bin/bash
+root@15070b5b1a76:/# watch -n 2 cat /var/htdocs/index.html
+
+以上 通过执行docker run 最后加位置参数(2) 来改变image里面的CMD所设置的默认参数(5)
+进一步 在Kubenetes中实现
+注意事项   docker中的ENTRYPOINT 在Kubenetes中 command
+           docker中的CMD   在Kubenetes中args 
+
+Docker 			Kubernetes 		Description
+ENTRYPOINT 		command 		The executable that’s executed inside the container
+CMD 			args 			The arguments passed to the executable
+
+
+===================================================================
+===================================================================
+===================================================================
+传递参数 3秒给容器  注意 参数 如果是字符 直接写  如果是Number 加引号args: ["3"] 
+[kubeadm@masnode1 ~]$ cat  pod-fortune-arg.yaml             
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune3s
+spec:
+ containers:
+ - image: jinling/fortune:defarg5 
+   args: ["3"] 
+   name: fortune3s-c
+
+测试
+
+kubectl exec -it fortune3s -- /bin/bash
+root@fortune3s:/# watch -n 1 cat /var/htdocs/index.html 
+看到3秒一变化
+
+###################################################################
+2 Setting custom environment variables for each container
+[root@masnode1 myproject10]# vim generate_file_env.sh 
+#!/bin/bash
+trap "exit" SIGINT
+mkdir -p /www/htdoc
+while :
+do
+ /usr/games/fortune > /www/htdoc/index.html
+ sleep $SLEEP_INTERVAL
+done
+
+
+[root@masnode1 myproject10]# vim Dockerfile 
+FROM ubuntu:latest
+ADD generate_file_env.sh /bin/generate_file_env.sh
+RUN chmod +x /bin/generate_file_env.sh && apt-get update && apt-get -y install fortune
+ENTRYPOINT [ "/bin/generate_file_env.sh" ]
+# CMD [ "5" ]
+
+
+$ docker build -t jinling/fortune:env .
+上传值docker hub
+$ docker push jinling/fortune:env
+
+在Kubenetes中实现环境变量
+[kubeadm@masnode1 ~]$ cat  pod-fortune-env.yaml             
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune4s
+spec:
+ containers:
+ - image: jinling/fortune:env 
+   env:
+   - name: SLEEP_INTERVAL
+     value: "4"
+   name: fortune4s-c
+   
+kubectl create -f    pod-fortune-env.yaml
+[kubeadm@masnode1 ~]$ kubectl get pod
+NAME           READY   STATUS              RESTARTS   AGE
+fortune3s      1/1     Running             0          39m
+fortune4s      0/1     Contain[kubeadm@masnode1 ~]$ kubectl get pod
+NAME           READY   STATUS    RESTARTS   AGE
+fortune3s      1/1     Running   0          40m
+fortune4s      1/1     Running   0          80s
+
+[kubeadm@masnode1 ~]$ kubectl exec -it fortune4s -- /bin/bash
+root@fortune4s:/# watch -n 1 cat /var/htdocs/index.html
+
+
+
+###################################################################
+3 Mounting configuration files into containers through a special type of volume
+
+Kubernetes allows separating configuration options into a separate object called a
+ConfigMap
+which is a map containing key/value pairs with the values ranging from short literals to full config files.
+参考  https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/
+
+
+ The contents of the map are instead passed to containers as either environent variables or as files in a volume
+
+ And because environment variables can be referenced in command-line arguments using the $(ENV_VAR) syntax, you can also pass ConfigMap entries to processes as command-line arguments.
+ 
+ 
+  Pods use ConfigMaps through environment variables and configMap volumes
+
+
+Creating a ConfigMap
+-----
+USING THE KUBECTL CREATE CONFIGMAP COMMAND
+You can define the map’s entries by passing literals to the kubectl command or you
+can create the ConfigMap from files stored on your disk
+
+$ kubectl create configmap fortune-literal-5 --from-literal=sleepinterval=5
+$ kubectl get configmaps
+$ kubectl get configmaps fortune-literal-5 -o yaml
+Passing a ConfigMap entry to a container as an environment variable
+$ vim pod-fortune-cm.yaml
+[kubeadm@masnode1 ~]$ cat pod-fortune-cm.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune5s
+spec:
+ containers:
+ - image: jinling/fortune:env
+   env:
+   - name: SLEEP_INTERVAL
+     valueFrom:
+       configMapKeyRef:
+         name: fortune-literal-5
+         key: sleepinterval
+   name: fortune5s-c
+   
+$ kubectl apply -f pod-fortune-cm.yaml   
+[kubeadm@masnode1 ~]$ kubectl exec -it fortune5s -- /bin/bash
+root@fortune5s:/# watch -n 1 cat /var/htdocs/index.html
+
+
+
+$ kubectl create configmap fortune-literal-multi --from-literal=sleepinterval=5 --from-literal=sleepintervalcat=50 --from-literal=sleepintervaldog=500
+
+$ kubectl get configmaps fortune-literal-multi -o yaml
+   
+
+
+对比
+<      value: "4"
+---
+>      valueFrom:
+>        configMapKeyRef:
+>          name: fortune-literal-5
+>          key: sleepinterval 
+
+
+
+
+
+
+
+
+
+
+
+Create ConfigMaps from Dirtory
+mkdir -p configure-pod-container/configmap/
+wget https://kubernetes.io/examples/configmap/game.properties -O configure-pod-container/configmap/game.properties
+wget https://kubernetes.io/examples/configmap/ui.properties -O configure-pod-container/configmap/ui.properties
+
+kubectl create configmap game-config --from-file=configure-pod-container/configmap/
+
+
+Create ConfigMaps from files
+kubectl create configmap game-config-person --from-file=configure-pod-container/configmap/game.properties 
+kubectl create configmap game-config-ui --from-file=configure-pod-container/configmap/ui.properties 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+How do you now get the values from this map into a pod’s container? 
+You have three options. 
+
+***********
+Passing a ConfigMap entry to a container as an environment variable
+Let’s start with the simplest—setting an environment variable.
+You’ll use the valueFrom field
+You defined an environment variable called INTERVAL and set its value to whatever is
+stored in the fortune-config ConfigMap under the key sleep-interval 
+
+
+********
+Passing all entries of a ConfigMap as environment variables at once
+
+ kubectl get configmap game-config -o yaml
+
+[kubeadm@masnode1 ~]$ cat  pod-fortune-cm-multienv.yaml             
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginxms
+spec:
+ containers:
+ - name: nginxms-c
+   image: nginx
+   envFrom:
+   - configMapRef:
+       name: game-config 
+	   
+	   
+[kubeadm@masnode1 ~]$ kubectl create -f pod-fortune-cm-multienv.yaml	   
+	   
+[kubeadm@masnode1 ~]$ kubectl exec -it nginxms -- env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=nginxms
+TERM=xterm
+game.properties=enemies=aliens
+lives=3
+enemies.cheat=true
+enemies.cheat.level=noGoodRotten
+secret.code.passphrase=UUDDLRLRBABAS
+secret.code.allowed=true
+secret.code.lives=30
+v1=100
+v2=200
+stu1=alice
+stu1.address=nanjing
+stu2=bob
+
+ui.properties=color.good=purple
+color.bad=yellow
+allow.textmode=true
+how.nice.to.look=fairlyNice   
+
+
+
+
+
+
+	   
+	   
+
+*************
+Using a configMap volume to expose ConfigMap entries as files
+Passing configuration options as environment variables or command-line arguments
+is usually used for short variable values
+
+A ConfigMap, as you’ve seen, can also contain whole config files.
+
+When you want to expose those to the container, you can use
+one of the special volume types
+
+namely a configMap volume.
+
+ A configMap volume will expose each entry of the ConfigMap as a file.
+ 
+-----------passing large config files to the container 
+！！！！！这个实验中 我不去更改主配置
+通过在nginx 的conf.d/ 目录下加载文件
+
+做一个 nginx的配置文件 文件名任意 扩展名必须conf
+（覆盖了主配置 三项 server_name gzip on;   gzip_types ）
+[kubeadm@masnode1 ~]$ cat /home/kubeadm/nginxconf/nginx-config-gzip.conf 
+server {
+ listen 80;
+ server_name www.example.com;
+ gzip on;
+ gzip_types text/plain application/xml;
+ location / {
+ root /usr/share/nginx/html;
+ index index.html index.htm;
+ }
+}
+
+将配置文件用CM 打包成 configmap
+kubectl create configmap nginx-conf --from-file=/home/kubeadm/nginxconf
+（由于我在 该目录下 为了演示  任意建立了一个test.dat  一起打包 在服务器中也会生成该文件）
+
+[kubeadm@masnode1 ~]$ kubectl get cm nginx-conf -o yaml
+apiVersion: v1
+data:
+  nginx-config-gzip.conf: |
+    server {
+     listen 80;
+     server_name www.example.com;
+     gzip on;
+     gzip_types text/plain application/xml;
+     location / {
+     root /usr/share/nginx/html;
+     index index.html index.htm;
+     }
+    }
+  test.dat: |
+    v1=100
+    v2=100
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2019-09-19T08:10:08Z"
+  name: nginx-conf
+  namespace: default
+  resourceVersion: "449215"
+  selfLink: /api/v1/namespaces/default/configmaps/nginx-conf
+  uid: b0392b34-40f9-406a-995a-491f2d84fc32
+
+
+建立POd
+
+
+[kubeadm@masnode1 ~]$ cat  pod-nginx-configmap-vol.yaml   
+apiVersion: v1
+kind: Pod
+metadata:
+ name: nginx-zip
+spec:
+ containers:
+ - image: nginx:latest
+   name: nginx-zip-c
+   volumeMounts:
+   - name: configmap-vol
+     mountPath: /etc/nginx/conf.d 
+     readOnly: true
+ volumes:
+ - name: configmap-vol
+   configMap: 
+     name: nginx-conf
+关键在于最后8行 
+定义了 容器中 nginx配置 目录 /etc/nginx/conf.d 使用一个config map vol挂载
+而这个卷 器是是一个 configmap文件 该文件原先使用 两个文件生成
+
+运行该容器时 configmap文件 定义的K/V 将会还原成原来的文件
+
+kubectl apply -f pod-nginx-configmap-vol.yaml
+
+查看
+kubectl exec -it nginx-zip -- sh
+# ls /etc/nginx/conf.d
+nginx-config-gzip.conf  test.dat
+
+VERIFYING NGINX IS USING THE MOUNTED CONFIG FILE
+
+[kubeadm@masnode1 ~]$ curl -H "Accept-Encoding: gzip" -I 10.244.3.72
+HTTP/1.1 200 OK
+Server: nginx/1.17.3
+Date: Thu, 19 Sep 2019 09:05:28 GMT
+Content-Type: text/html
+Last-Modified: Tue, 13 Aug 2019 08:50:00 GMT
+Connection: keep-alive
+ETag: W/"5d5279b8-264"
+Content-Encoding: gzip
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ volumes:
+ - name: config 
+   configMap: 
+   name: fortune-config 
+   items: 
+    - key: my-nginx-config.conf 
+    path: gzip.conf

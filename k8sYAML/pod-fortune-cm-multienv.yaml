@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginxms
+spec:
+ containers:
+ - name: nginxms-c
+   image: nginx
+   envFrom:
+   - configMapRef:
+       name: game-config  

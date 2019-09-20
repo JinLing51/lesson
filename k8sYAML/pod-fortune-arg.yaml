@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune3s
+spec:
+ containers:
+ - image: jinling/fortune:defarg5 
+   args: ["3"] 
+   name: fortune3s-c

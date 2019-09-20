@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune4s
+spec:
+ containers:
+ - image: jinling/fortune:env
+   env:
+   - name: SLEEP_INTERVAL
+     value: "4"
+   name: fortune4s-c

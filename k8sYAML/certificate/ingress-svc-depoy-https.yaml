@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deploy5
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-deploy5
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy5
+    spec:
+      containers:
+      - name: nginx-deploy5
+        image: jinling/nginx:alpine0
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-svc5
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-deploy5
+  ports:
+  - port: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-web5
+spec:
+  tls:
+  - hosts:
+    - web5.example.com
+    secretName: tls-secret
+  rules:
+  - host: web5.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-deploy-svc5
+          servicePort: 80
