@@ -102,7 +102,7 @@ oracle复用--控制 日志
 
 归档模式
 arch进程 alter database archivelog
-归档目录 alter system set log_archive_dest_1='location=/u0/arch01' scope=spfile;
+归档目录 alter system set log_archive_dest_1='location=/u01/arch01' scope=spfile;
 
 rman target /
 RMAN>backup spfile

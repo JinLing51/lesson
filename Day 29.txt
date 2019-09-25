@@ -175,6 +175,36 @@ OK.....
 
 
 
+===============
+server.xml
+<user name="root">
+                <property name="password">123456</property>
+                <property name="schemas">TESTDB1,TESTDB2</property>
+
+
+schema.xml
+[root@server91 ~]# cat /usr/local/mycat/conf/schema.xml 
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+
+        <schema name="TESTDB1" checkSQLschema="false" sqlMaxLimit="100" dataNode="dn1" />
+        <schema name="TESTDB2" checkSQLschema="false" sqlMaxLimit="100" dataNode="dn2" />
+        <dataNode name="dn1" dataHost="localhost1" database="world" />
+        <dataNode name="dn2" dataHost="localhost1" database="sakila" />
+
+        <dataHost name="localhost1" maxCon="1000" minCon="10" balance="1"
+                          writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+                <heartbeat>select user()</heartbeat>
+                <!-- can have multi write hosts -->
+                <writeHost host="hostM1" url="192.168.0.131:3306" user="root" password="1234" >
+                        <!-- can have multi read hosts -->
+                <readHost host="hostS2"  url="192.168.0.132:3306" user="root" password="1234" />
+                <readHost host="hostS4"  url="192.168.0.133:3306" user="root" password="1234" />
+                </writeHost>
+        </dataHost>
+</mycat:schema>
+
 
 
 

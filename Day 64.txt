@@ -1,0 +1,135 @@
+dashboard
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+
+运行过程
+[kubeadm@masnode1 ~]$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+secret/kubernetes-dashboard-certs created
+serviceaccount/kubernetes-dashboard created
+role.rbac.authorization.k8s.io/kubernetes-dashboard-minimal created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard-minimal created
+deployment.apps/kubernetes-dashboard created
+service/kubernetes-dashboard created
+
+检查结果
+[kubeadm@masnode1 ~]$ kubectl get svc -n kube-system
+NAME                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+kube-dns               ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   10d
+kubernetes-dashboard   ClusterIP   10.107.171.193   <none>        443/TCP                  2m50s
+[kubeadm@masnode1 ~]$ kubectl get deployments -n kube-system   
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+coredns                2/2     2            2           10d
+kubernetes-dashboard   0/1     1            0           3m6s
+[kubeadm@masnode1 ~]$ kubectl get pod -n kube-system    
+kubernetes-dashboard-7d75c474bb-r8bkm          0/1     ImagePullBackOff   0          3m53s
+
+结果 镜像拉取失败
+
+[kubeadm@masnode1 ~]$ kubectl describe pop kubernetes-dashboard-7d75c474bb-r8bkm -n kube-system 
+
+docker pull docker.io/jinling/kubernetes-dashboard-amd64:v1.10.1
+
+docker tag docker.io/jinling/kubernetes-dashboard-amd64:v1.10.1 k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
+
+
+=======
+
+
+
+
+cat > admin-user.yaml <<EOF -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+EOF  
+  
+  
+cat > admin-user-crbind.yaml <<EOF -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+EOF
+
+
+kubectl apply -f admin-user.yaml
+
+kubectl apply -f admin-user-crbind.yaml
+
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+
+[kubeadm@masnode1 ~]$ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-whmhg
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: c486db77-758b-4563-884c-000ce5304fdb
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  11 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXdobWhnIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJjNDg2ZGI3Ny03NThiLTQ1NjMtODg0Yy0wMDBjZTUzMDRmZGIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.uAYEBWmJsMwRlUBNFLxa7aGdkInUNDDr0UrNvgaz5jvwWwda1G0JH5UPxGs_PH0UQochHBAk13cc7ofGQL0wDHNf3uZCqAncdAzQuTLJSL4H6R1Kwqt_6wb2dSJlI3zd1VvQVu_XbC2WHDt8xIwv0Qer-UebVyxjxtuI015YADziuWysMQF4pj58wQxVbC3JNscexcPE38tfiSoyJOSCDj4FN2KYUW29DBQzplv7N2YrGukdIB3NmI4uCtJ3LDZo11qvs_inilKY-BsX1yZbUbjJEILxrd5ZntE9rNxdf_Bx581yvessqpawleX988CoVvYkQOKFu8N63flIQNy9QQ
+[kubeadm@masnode1 ~]$ 
+
+
+用户访问API server 用户使用kubectl执行命令....
+pod需要访问API server 例如Dashboard pod
+kubernetes-dashboard-7d75c474bb-r8bkm--->API server
+
+REST API 通过HTTPS访问
+
+认证 authentication （确定账号合法性） c----s s----c    CA
+鉴权 Authorization (确定账号能干什么)  被允许操作  （get create apply delete .....）
+准入控制 
+
+
+kubectl get pods pod1
+https://192.168.0.100:6443/api/v1/namespaces/default/pod/pod1
+
+curl https://192.168.0.100:6443/api/v1/namespaces/default/pod/pod1
+[kubeadm@masnode1 ~]$ kubectl proxy --port=8888
+Starting to serve on 127.0.0.1:8888
+
+kubectl get pods pod1
+curl http://127.0.0.1:8888/api/v1/namespaces/default/pods/pod1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

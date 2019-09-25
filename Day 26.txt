@@ -247,12 +247,15 @@ If you specify the --log-bin option without also specifying a --server-id, the s
 server-id=1
 log_bin=/var/lib/mysql/mysql-bin
 
- log_bin                         | ON                             |
+mysql> show variables like 'log_bin%';
++---------------------------------+--------------------------------+
+| Variable_name                   | Value                          |
++---------------------------------+--------------------------------+
+| log_bin                         | ON                             |
 | log_bin_basename                | /var/lib/mysql/mysql-bin       |
 | log_bin_index                   | /var/lib/mysql/mysql-bin.index |
 
 – 企业审计
-
 
 
 

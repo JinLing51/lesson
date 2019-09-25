@@ -171,9 +171,51 @@ elinks http://127.0.0.1/~tom/index.html
 
 
 
+selinux案例 和解决方案
 
-
-
+[root@mysqlc ~]# getenforce 
+Enforcing
+[root@mysqlc ~]# echo "test" > /home/index.html
+[root@mysqlc ~]# mv /home/index.html /var/www/html/
+mv：是否覆盖"/var/www/html/index.html"？ y
+[root@mysqlc ~]# curl 127.0.0.1/index.html
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>403 Forbidden</title>
+</head><body>
+<h1>Forbidden</h1>
+<p>You don't have permission to access /index.html
+on this server.</p>
+</body></html>
+[root@mysqlc ~]# setenforce 0
+[root@mysqlc ~]# setenforce 0
+[root@mysqlc ~]# curl 127.0.0.1/index.html
+test
+[root@mysqlc ~]# setenforce 1
+[root@mysqlc ~]# curl 127.0.0.1/index.html
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>403 Forbidden</title>
+</head><body>
+<h1>Forbidden</h1>
+<p>You don't have permission to access /index.html
+on this server.</p>
+</body></html>
+[root@mysqlc ~]# tail -10 /var/log/messages
+Sep 23 17:52:50 mysqlc dbus-daemon: dbus[744]: avc:  received setenforce notice (enforcing=1)
+Sep 23 17:52:50 mysqlc dbus[744]: avc:  received setenforce notice (enforcing=1)
+Sep 23 17:52:50 mysqlc dbus[744]: [system] Reloaded configuration
+Sep 23 17:52:50 mysqlc dbus-daemon: dbus[744]: [system] Reloaded configuration
+Sep 23 17:52:50 mysqlc setroubleshoot: failed to retrieve rpm info for /var/www/html/index.html
+Sep 23 17:52:50 mysqlc setroubleshoot: SELinux is preventing /usr/sbin/httpd from open access on the file /var/www/html/index.html. For complete SELinux messages run: sealert -l 5d81fd60-7a22-4332-a0b3-2adabd213aa4
+Sep 23 17:52:50 mysqlc python: SELinux is preventing /usr/sbin/httpd from open access on the file /var/www/html/index.html.#012#012*****  Plugin restorecon (99.5 confidence) suggests   ************************#012#012If you want to fix the label. #012/var/www/html/index.html default label should be httpd_sys_content_t.#012Then you can run restorecon.#012Do#012# /sbin/restorecon -v /var/www/html/index.html#012#012*****  Plugin catchall (1.49 confidence) suggests   **************************#012#012If you believe that httpd should be allowed open access on the index.html file by default.#012Then you should report this as a bug.#012You can generate a local policy module to allow this access.#012Do#012allow this access for now by executing:#012# ausearch -c 'httpd' --raw | audit2allow -M my-httpd#012# semodule -i my-httpd.pp#012
+Sep 23 17:52:55 mysqlc setroubleshoot: failed to retrieve rpm info for /var/www/html/index.html
+Sep 23 17:52:55 mysqlc setroubleshoot: SELinux is preventing httpd from getattr access on the file /var/www/html/index.html. For complete SELinux messages run: sealert -l 8ae8d53c-8db3-4de0-bde7-7a884b988df7
+Sep 23 17:52:55 mysqlc python: SELinux is preventing httpd from getattr access on the file /var/www/html/index.html.#012#012*****  Plugin restorecon (99.5 confidence) suggests   ************************#012#012If you want to fix the label. #012/var/www/html/index.html default label should be httpd_sys_content_t.#012Then you can run restorecon.#012Do#012# /sbin/restorecon -v /var/www/html/index.html#012#012*****  Plugin catchall (1.49 confidence) suggests   **************************#012#012If you believe that httpd should be allowed getattr access on the index.html file by default.#012Then you should report this as a bug.#012You can generate a local policy module to allow this access.#012Do#012allow this access for now by executing:#012# ausearch -c 'httpd' --raw | audit2allow -M my-httpd#012# semodule -i my-httpd.pp#012
+[root@mysqlc ~]# /sbin/restorecon -v /var/www/html/index.html
+/sbin/restorecon reset /var/www/html/index.html context unconfined_u:object_r:home_root_t:s0->unconfined_u:object_r:httpd_sys_content_t:s0
+[root@mysqlc ~]# curl 127.0.0.1/index.html
+test
  
    
    

@@ -275,8 +275,6 @@ pody   1/1     Running   2          10m
 可见 RESTARTS 若干次
 
 
-
-
 就绪探针
 设置一个检测条件 来告知K8S 该POD是否可以工作
 

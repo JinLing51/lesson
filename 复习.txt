@@ -64,10 +64,19 @@ MBR GPT
 传统分区 
 
 LVM 逻辑卷管理
+partition--PV----VG----LV----mkfs----mount---fstab
+
+
+
 
 文件共享 NFS Samba
 
 防火墙 firewalld
+iptables
+firewalld
+
+
+
 
 Python语言
 
@@ -90,6 +99,295 @@ SELinux的设置
 安全上下文 标签 
 布尔值控制服务  apache个人主页功能
 控制端口  例子sshd
+
+
+
+Client/Server
+B/S
+
+Oracle Server=Oracle Instance+Oracle Database
+Instance=process+memory structure
+process=大量 Server Process+ 少量 Background process
+Background process=
+
+ps -ef|grep ora_
+
+格式 ora_lgwr_prod
+DBWR将数据从内存写回磁盘 数据文件 
+LGWR将数据从内存保存到磁盘 日志文件
+CKPT 将检查点信息写入磁盘  控制文件 数据文件头部位置
+SMON 监控....     实例恢复 空间合并
+PMON 监控         资源回收
+ARCH 归档       将日志从日志文件保存到归档日志文件
+LREG 注册      将oracle服务注册到监听器
+
+memory
+database buffer cache 缓存数据 用于处理
+share pool    缓存执行过的SQL语句 及其解析树和执行计划 用于语句重用，无需再次parse
+large pool   支持某些服务  并行操作 数据装载 导入导出 备份还原
+java pool 支持JVM
+stream pool 支持流复制
+redo log buffer 日志缓冲  数据库的操作过程产生的日志暂存此处
+
+配置参数
+memory_target=
+sga_target
+pga_aggregate_target
+
+show parameter db_cache_size
+db_cache_size
+share_pool_size
+large_pool_size
+java_pool_size
+stream_pool_size
+log_buffer=????
+
+
+数据库
+参数文件  /u01/app/oracle/product/12.2.0/dbhome_1/dbs/spfileprod.ora
+数据文件 select name from v$datafile;
+临时文件 select name from v$tempfile;
+日志文件 select group#,member from v$logfile;
+控制文件 select name from v$controlfile;
+。。。。。
+
+
+物理
+数据文件 select name from v$datafile;
+
+逻辑
+dbca
+数据库
+--
+表空间 --段 --- 区 -块
+select tablespace_name from  dba_tablespaces;
+
+SQL> select tablespace_name from  dba_tablespaces;
+
+TABLESPACE_NAME
+------------------------------
+SYSTEM  存放数据字典
+SYSAUX  存放辅助数据
+UNDOTBS1 还原表空间
+TEMP   临时
+USERS  
+
+create table class (class_is number,class_name varchar2(20)) tablespace users;
+insert into class values(1,'a');
+
+一个segments  
+至少一个区  到很多区
+select extents,bytes/1024 from dba_segments where segment_name='CLASS';
+
+SQL> create tablespace tbs1 datafile '/u01/app/oracle/oradata/PROD/tbs1_1.dbf' size 10M autoextend on next 10M maxsize 10G;
+
+Tablespace created.
+
+SQL> create table class4 tablespace tbs1 as select  from dba_objects;
+create table class4 tablespace tbs1 as select  from dba_objects
+                                               *
+ERROR at line 1:
+ORA-00936: missing expression
+
+
+SQL> create table class4 tablespace tbs1 as select  * from dba_objects;
+
+Table created.
+
+startup 
+startup nomount
+alter database mount
+alter datbase open
+三阶段
+
+关闭 
+shutdown normal                    所有用户断开
+shutdown transactional             所有用户事务完成
+shutdown immediate                 服务器会主动回滚所有未完成事务 断开
+shutdown abort                     立刻断开 实例失败 （SMON 监控....     实例恢复） 
+
+三阶段
+SQL> shutdown normal
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+SELECT 列,表达式
+FROM 表
+WHERE子句
+GROUP BY
+HAVING
+
+desc 表
+
+索引 提高
+索引的创建规则和性能
+
+employees
+departments
+
+select EMPLOYEE_ID,LAST_NAME||FIRST_NAME,SALARY*12 ,nvl(COMMISSION_PCT,0) from employees;
+
+SQL> select EMPLOYEE_ID,LAST_NAME||FIRST_NAME,SALARY*12 ,nvl(to_char(COMMISSION_PCT),'no money') from employees where salary>10000;
+
+SQL> select EMPLOYEE_ID,LAST_NAME||FIRST_NAME,SALARY*12 ,nvl(to_char(COMMISSION_PCT),'no money') from employees where upper(last_name)='SMITH';
+
+select EMPLOYEE_ID,LAST_NAME||FIRST_NAME,SALARY*12 ,nvl(to_char(COMMISSION_PCT),'no money') from employees where hire_date>to_date('2002-08-01','yyyy-mm-dd');
+
+SELECT 
+函数 ---PL/SQL块（类 函数 存储过程 触发器.....）
+单行函数 
+字符函数 LPAD RPAD str 。。。
+数字 ROUND TRUNC 。。。
+日期函数 sysdate last_day next_day
+其他
+
+docs.oracle.com
+
+视图：封装了一条查询语句
+简单视图-----
+复杂视图-----（函数 表达式 分组 多表 NOT NULL的列）
+create view v01(name,sal)
+AS
+select last_name,salary*12 sal from   employees;
+
+不占存储空间
+
+索引：提高性能 （查询） 影响DML的性能
+索引占存储空间
+
+set timing on
+
+SQL> create table students1 (id,name) as select object_id,object_name from dba_objects;
+
+insert into students1 select * from students1;
+insert into students1 select * from students1;
+insert into students1 select * from students1;
+insert into students1 select * from students1;
+insert into students1 select * from students1;
+...
+...
+达到1000万行
+create index inx_1 on students1(id);
+ select * from students1 where id=1000;
+ 
+select * from students1 where id=1000;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POWER ON
+POST Power On Self Test (主板 固件 CMOS BIOS)--找硬盘
+硬盘头部 Master Boot recorder （存放bootloader 启动装载器）
+安装Linux （GRUB） 写进去 GRUB
+
+
+多行(组)函数 sum avg min max 
+
+
+
+select last_name,employee_id,depart_name
+from employees e,departments d
+where d.department_id=e.department_id
+AND salary>10000;
+
+select last_name,employee_id,depart_name
+from employees e JOIN departments d
+ON  d.department_id=e.department_id
+where salary>10000;
+
+
+select job_id,avg(salary)
+from employees
+where department_id<>50
+group by job_id
+having avg(salary)>6000
+order by job_id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ps -ef|grep ora_
+
+
+
+
+database=一系列文件
+
+
+
+
+
+
+
 
 
 数据库
@@ -218,7 +516,8 @@ MySQL数据库
  m'ySQL 登录数据的隐藏 login-path
  MYSQL root口令破解
  
- MYSQL 主从Master---Slave
+ 
+MYSQL 主从Master---Slave
 
 MYSQ集群 MySQL Cluster CGE
 
@@ -235,6 +534,9 @@ shell语言
 
 python语言
 
+git 
+github
+gitlab
 
 LB 集群：LVS  Nginx  Haproxy
 HA 集群： keepalived 

@@ -108,6 +108,7 @@ SET GLOBAL group_replication_bootstrap_group=ON
 mysql> START GROUP_REPLICATION;
 SET GLOBAL group_replication_bootstrap_group=OFF
 
+select * from performance_schema.replication_group_members;
 No2---。。。。
 SET SQL_LOG_BIN=0;
 GRANT REPLICATION SLAVE ON *.* TO rpl_user@'192.168.0.%' IDENTIFIED BY '123456';
@@ -116,6 +117,8 @@ CHANGE MASTER TO MASTER_USER='rpl_user', MASTER_PASSWORD='123456'
  FOR CHANNEL 'group_replication_recovery';
 
 mysql> START GROUP_REPLICATION;
+
+(附注：如果START GROUP_REPLICATION;失败可以尝试 用主库的方法(ON--OFF)先启动 然后关闭 再次启动 )
 
 Single-Primary
 
