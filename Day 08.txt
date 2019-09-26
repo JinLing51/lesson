@@ -1,4 +1,4 @@
-1 自造 XMS CA （找CA购买）
+1 自己创建CA认证中心 XMS CA （找CA购买）
 2 向www.northwind.com 发证书
 3 将证书和www.northwind.com绑定
 4. https://www.northwind.com
