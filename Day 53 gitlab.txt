@@ -1,0 +1,164 @@
+变量
+1.在playbook 的vars: 定义（与hosts同级别）  使用 {{ }} 调用
+- hosts: all
+  remote_user: root
+  vars:
+   - v1: nginx
+   - v2: abc
+   - v3: xyz
+#   - v10: ZZZZZ
+2.在inventory文件中	主机列表 添加变量   
+[dbservers]
+192.168.0.204  v10=abcde
+192.168.0.205  v10=xyz
+192.168.0.206  v10=AAA  V20=CCCC	   
+  - name: variables Test task
+    copy:
+     content: " {{ v10 }} test OK"
+     dest: /tmp/test100.txt
+	 
+
+3 	在inventory文件中	使用组添加
+ [webservers:vars]
+v30=ZZZ
+
+4.第四种变量 收集facts
+通过gather facts手机的信息 定义的变量
+ansible 192.168.0.203 -m setup
+
+ - name: variables gather facts variables
+     copy:
+      content: "this computer  Address {{ ansible_all_ipv4_addresses }} "
+	  dest: /tmp/mac_add.txt
+	  
+5. register 变量	  
+
+
+
+
+- name: this is test playbook
+  hosts: 192.168.0.201
+  remote_user: root
+  gather_facts: yes
+  tasks:
+   - name: A
+     copy:
+      content: '{{ ansible_hostname }}'
+      dest: /tmp/a001
+   - name: B
+     shell: 'whoami'
+     register: v1
+   - name: c
+     copy:
+      content: '{{ v1.stdout }}'
+      dest: /tmp/a001
+   - name: D
+     debug:
+      msg: 'the username:  "{{ v1.stdout }}"'
+	  
+
+
+
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_loops.html#loops
+
+关于文件的循环
+loop: "{{ lookup('fileglob', '*.txt', wantlist=True) }}"
+it’s cleaner to keep:
+
+with_fileglob: '*.txt'
+
+- name: loop testing
+  hosts: all
+  remote_user: root
+  gather_facts: yes
+  tasks:
+   - name: stage01
+     file:
+      dest: /test100
+      state: directory
+   - name: stage02
+     copy:
+      src: "{{ item }}"
+      dest: /test100
+      owner: root
+      group: wheel
+      mode: 775
+#     with_fileglob: '/test/*.txt'
+     loop: "{{ lookup('fileglob', '/test/*.dat', wantlist=True) }}"
+
+
+
+git client
+git init
+git status
+git add --all
+git commit ...
+git push
+
+
+Internet 仓库 github
+个人 免费
+企业仓库（收费）
+
+
+公司自建 仓库 gitlab-ee
+              gitlab-ce  
+
+https://about.gitlab.com/install/
+
+yum install -y curl policycoreutils-python openssh-server  postfix
+systemctl enable postfix
+systemctl restart postfix
+
+curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh |bash
+或
+curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh |bash
+
+
+EXTERNAL_URL="https://gitlab.example.com" yum install -y gitlab-ee
+或
+EXTERNAL_URL="https://gitlabce.example.com" yum install -y gitlab-ce
+安装完成后访问
+https://gitlab.example.com
+https://gitlabce.example.com
+
+
+
+  16  mkdir /git
+   17  cd /git
+   18  pwd
+   19  git clone https://gitlab.example.com/root/ansible.git
+   20  git clone http://gitlab.example.com/root/ansible.git
+   21  git --help
+   22  git help -a
+   23  git -c http.sslVerify=false clone https://gitlab.example.com/root/ansible.git
+   24  ls
+   25  ls ansible/
+   26  cd ansible/
+   27  touch file{1,2,3}
+   28  git add .
+   29  git status
+   30  git commit -m "first commit"
+   31  cd ..
+   32  git commit -m "first commit"
+   33  git add --all
+   34  git config --global user.email "jin@example.com"
+   35  git config --global user.name "jin"
+   36  cd ansible/
+   37  git commit -m "first commit"
+   38  git push origin master
+   39  git -c http.sslVerify=false push origin master
+   40  history 
+
+
+
+
+
+
+
+
+
+
+
+	  
+	  
