@@ -17,12 +17,59 @@ ansible 2.8.4
 4.在 python3  
 yum install python36 python36-tools
 wget https://bootstrap.pypa.io/get-pip.py
-python36 get-pip.py 
-.......
-Successfully installed pip-19.2.3 setuptools-41.2.0 wheel-0.33.6
-pip3.6 install ansible
-.....
-Successfully installed MarkupSafe-1.1.1 PyYAML-5.1.2 ansible-2.8.4
+[root@s173 ~]# python3.6 get-pip.py 
+Collecting pip
+  Downloading https://files.pythonhosted.org/packages/30/db/9e38760b32e3e7f40cce46dd5fb107b8c73840df38f0046d8e6514e675a1/pip-19.2.3-py2.py3-none-any.whl (1.4MB)
+     |████████████████████████████████| 1.4MB 167kB/s 
+Collecting wheel
+  Downloading https://files.pythonhosted.org/packages/00/83/b4a77d044e78ad1a45610eb88f745be2fd2c6d658f9798a15e384b7d57c9/wheel-0.33.6-py2.py3-none-any.whl
+Installing collected packages: pip, wheel
+  Found existing installation: pip 9.0.3
+    Uninstalling pip-9.0.3:
+      Successfully uninstalled pip-9.0.3
+Successfully installed pip-19.2.3 wheel-0.33.6
+
+[root@s173 ~]# pip3.6 install ansible
+Collecting ansible
+  Downloading https://files.pythonhosted.org/packages/04/25/48fee5f8048360d9375e01846fcf395dda58242ed1f25a2106b6794452eb/ansible-2.8.5.tar.gz (14.4MB)
+     |████████████████████████████████| 14.4MB 37kB/s 
+Collecting jinja2 (from ansible)
+  Downloading https://files.pythonhosted.org/packages/1d/e7/fd8b501e7a6dfe492a433deb7b9d833d39ca74916fa8bc63dd1a4947a671/Jinja2-2.10.1-py2.py3-none-any.whl (124kB)
+     |████████████████████████████████| 133kB 40kB/s 
+Collecting PyYAML (from ansible)
+  Downloading https://files.pythonhosted.org/packages/e3/e8/b3212641ee2718d556df0f23f78de8303f068fe29cdaa7a91018849582fe/PyYAML-5.1.2.tar.gz (265kB)
+     |████████████████████████████████| 266kB 47kB/s 
+Collecting cryptography (from ansible)
+  Downloading https://files.pythonhosted.org/packages/97/18/c6557f63a6abde34707196fb2cad1c6dc0dbff25a200d5044922496668a4/cryptography-2.7-cp34-abi3-manylinux1_x86_64.whl (2.3MB)
+     |████████████████████████████████| 2.3MB 70kB/s 
+Collecting MarkupSafe>=0.23 (from jinja2->ansible)
+  Downloading https://files.pythonhosted.org/packages/b2/5f/23e0023be6bb885d00ffbefad2942bc51a620328ee910f64abe5a8d18dd1/MarkupSafe-1.1.1-cp36-cp36m-manylinux1_x86_64.whl
+Collecting asn1crypto>=0.21.0 (from cryptography->ansible)
+  Downloading https://files.pythonhosted.org/packages/ea/cd/35485615f45f30a510576f1a56d1e0a7ad7bd8ab5ed7cdc600ef7cd06222/asn1crypto-0.24.0-py2.py3-none-any.whl (101kB)
+     |████████████████████████████████| 102kB 54kB/s 
+Collecting six>=1.4.1 (from cryptography->ansible)
+  Downloading https://files.pythonhosted.org/packages/73/fb/00a976f728d0d1fecfe898238ce23f502a721c0ac0ecfedb80e0d88c64e9/six-1.12.0-py2.py3-none-any.whl
+Collecting cffi!=1.11.3,>=1.8 (from cryptography->ansible)
+  Downloading https://files.pythonhosted.org/packages/5f/bf/6aa1925384c23ffeb579e97a5569eb9abce41b6310b329352b8252cee1c3/cffi-1.12.3-cp36-cp36m-manylinux1_x86_64.whl (430kB)
+     |████████████████████████████████| 440kB 38kB/s 
+Collecting pycparser (from cffi!=1.11.3,>=1.8->cryptography->ansible)
+  Downloading https://files.pythonhosted.org/packages/68/9e/49196946aee219aead1290e00d1e7fdeab8567783e83e1b9ab5585e6206a/pycparser-2.19.tar.gz (158kB)
+     |████████████████████████████████| 163kB 29kB/s 
+Building wheels for collected packages: ansible, PyYAML, pycparser
+  Building wheel for ansible (setup.py) ... done
+  Created wheel for ansible: filename=ansible-2.8.5-cp36-none-any.whl size=12635632 sha256=a6cfe84dbf769492ab23c53ef18c40e71176fa066cef3f4c042df83c8f2d769c
+  Stored in directory: /root/.cache/pip/wheels/89/40/f0/6f51c0707ef61a8459893eb5e016ff4ded415dd47a4f74608e
+  Building wheel for PyYAML (setup.py) ... done
+  Created wheel for PyYAML: filename=PyYAML-5.1.2-cp36-cp36m-linux_x86_64.whl size=44104 sha256=6b9912db962be2cf8de1dd3fe59c1d6aeef72fa2d0426cc91f847cf9a2f4c970
+  Stored in directory: /root/.cache/pip/wheels/d9/45/dd/65f0b38450c47cf7e5312883deb97d065e030c5cca0a365030
+  Building wheel for pycparser (setup.py) ... done
+  Created wheel for pycparser: filename=pycparser-2.19-py2.py3-none-any.whl size=111029 sha256=85c7449b4302dbfe0dc1f28a869170ccdeac72679fb9d03e6277ca2dcdf693b2
+  Stored in directory: /root/.cache/pip/wheels/f2/9a/90/de94f8556265ddc9d9c8b271b0f63e57b26fb1d67a45564511
+Successfully built ansible PyYAML pycparser
+Installing collected packages: MarkupSafe, jinja2, PyYAML, asn1crypto, six, pycparser, cffi, cryptography, ansible
+Successfully installed MarkupSafe-1.1.1 PyYAML-5.1.2 ansible-2.8.5 asn1crypto-0.24.0 cffi-1.12.3 cryptography-2.7 jinja2-2.10.1 pycparser-2.19 six-1.12.0
+
+
 ansible --version
 ansible 2.8.4
   config file = None
@@ -52,6 +99,7 @@ ansible all -m unarchive -a 'src=apache-tomcat-8.5.45.tar.gz dest=/src1'
 
 
 handlers
+
 ---
 - hosts: all
   tasks: 

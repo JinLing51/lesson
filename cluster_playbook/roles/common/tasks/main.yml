@@ -2,3 +2,15 @@
   yum:
    name: epel-release
    state: latest
+- name: clean soft
+  yum:
+   name: "{{ item }}"
+   state: absent
+  with_items:
+    - httpd
+    - nginx
+    - keepalived
+- name: copy hosts file
+  copy:
+   src: hosts
+   dest: /etc/hosts

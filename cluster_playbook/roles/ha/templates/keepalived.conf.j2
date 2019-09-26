@@ -1,13 +1,13 @@
 ! Configuration File for keepalived
 
 global_defs {
-   router_id s151
+   router_id {{ ansible_hostname }}
 }
 
 vrrp_instance VI_1 {
     state MASTER
     interface ens33
-    virtual_router_id 77
+    virtual_router_id 88
     priority 100
     advert_int 1
     authentication {
@@ -15,7 +15,7 @@ vrrp_instance VI_1 {
         auth_pass 9999
     }
     virtual_ipaddress {
-        192.168.0.150
+        192.168.0.210
     }
 }
 
