@@ -10,12 +10,12 @@ global_defs {
 vrrp_instance VI_1 {
     state MASTER
     interface ens33
-    virtual_router_id 20
+    virtual_router_id 77
     priority 100
     advert_int 1
     authentication {
         auth_type PASS
-        auth_pass 6666
+        auth_pass 9999
     }
     virtual_ipaddress {
         192.168.0.150
@@ -95,7 +95,7 @@ host3
 .....
 host1000(Zabbix Agent)
 
-
+https://www.zabbix.com/download
 # yum install httpd mysql-community-server  php php-mysql -y
 
 [root@s170 ~]# systemctl enable httpd

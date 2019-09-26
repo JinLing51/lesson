@@ -187,6 +187,56 @@ virtual_server 192.168.0.100 80 {
 
 }
 
+复习总结
+1.一旦使用keepalived ipvsadm服务可以关闭 直接使用keepalived配置
+[root@s101 ~]# systemctl is-enabled ipvsadm                  
+disabled
+[root@s105 ~]# systemctl is-enabled ipvsadm 
+disabled
+
+2.两台keepalive的LVS机器 都已查看 LVS配置
+[root@s101 ~]# ipvsadm -Ln --stats
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port               Conns   InPkts  OutPkts  InBytes OutBytes
+  -> RemoteAddress:Port
+TCP  192.168.0.100:80                 5633    26620        0  1969935        0
+  -> 192.168.0.102:80                  939     4717        0   341066        0
+  -> 192.168.0.103:80                 1877     9488        0   691575        0
+  -> 192.168.0.104:80                 2817    12415        0   937294        0
+3.一旦MASTER上线 BACKUP就会移除VIP
+[root@s105 ~]# systemctl status keepalived.service 
+● keepalived.service - LVS and VRRP High Availability Monitor
+   Loaded: loaded (/usr/lib/systemd/system/keepalived.service; enabled; vendor preset: disabled)
+   Active: active (running) since 四 2019-09-26 11:18:35 CST; 9min ago
+  Process: 994 ExecStart=/usr/sbin/keepalived $KEEPALIVED_OPTIONS (code=exited, status=0/SUCCESS)
+ Main PID: 1014 (keepalived)
+   CGroup: /system.slice/keepalived.service
+           ├─1014 /usr/sbin/keepalived -D
+           ├─1017 /usr/sbin/keepalived -D
+           └─1018 /usr/sbin/keepalived -D
+
+9月 26 11:23:07 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: VRRP_Instance(VI_1) Sending/queueing gratuitous ARPs ...100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:23:12 s105 Keepalived_vrrp[1018]: Sending gratuitous ARP on ens33 for 192.168.0.100
+9月 26 11:25:05 s105 Keepalived_vrrp[1018]: VRRP_Instance(VI_1) Received advert with higher prior... 40
+9月 26 11:25:05 s105 Keepalived_vrrp[1018]: VRRP_Instance(VI_1) Entering BACKUP STATE
+9月 26 11:25:05 s105 Keepalived_vrrp[1018]: VRRP_Instance(VI_1) removing protocol VIPs.
+
+
+
+[root@s105 ~]# ipvsadm -Ln --stats
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port               Conns   InPkts  OutPkts  InBytes OutBytes
+  -> RemoteAddress:Port
+TCP  192.168.0.100:80                 5506    28738        0  2109019        0
+  -> 192.168.0.102:80                  918     4616        0   332843        0
+  -> 192.168.0.103:80                 1835    10023        0   748959        0
+  -> 192.168.0.104:80                 2753    14099        0  1027217        0
+
 
 
 
