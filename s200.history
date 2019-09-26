@@ -1,0 +1,964 @@
+    1  hostnamectl set-hostname Server01.example.com
+    2  sed '/^SELINUX/s/enforcing/disabled/' /etc/selinux/config 
+    3  sed -i '/^SELINUX/s/enforcing/disabled/' /etc/selinux/config 
+    4  systemctl disable firewalld
+    5  nmcli conn show
+    6  uuidgen ens33
+    7  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+    8  reboot
+    9  systemctl poweroff
+   10  hostname s200
+   11  bash ./deploy101.sh 
+   12  reboot
+   13  hostname
+   14  vi deploy101.sh 
+   15  hostnamectl set-hostname s200
+   16  vi /etc/hosts
+   17  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+   18  reboot
+   19  vim /etc/ansible/ansible.cfg
+   20  ls /usr/lib/python2.7/site-packages/ansible
+   21  ls /usr/lib/python2.7/site-packages/ansible/modules
+   22  exit
+   23  ssh 192.168.0.201 date;ssh 192.168.0.202 date;ssh 192.168.0.203 date
+   24  ansible all -m command -a 'date'
+   25  ansible 192.168.0.201 -m command -a 'date'
+   26  ansible group1 -m command -a 'yum -y install vsftpd'
+   27  history 
+   28  ansible 192.168.0.201 -m command -a 'echo "world">/tmp/test2'
+   29  ansible-doc -l|grep cron
+   30  ansible-doc -s cron
+   31  ansible all -m crom -a 'minute="1" hour="3" job="ls"'
+   32  ansible all -m cron -a 'minute="1" hour="3" job="ls"'
+   33  q
+   34  ansible all -m ping
+   35  vi exam01.sh
+   36  chmod +x exam01.sh
+   37  ./exam01.sh 
+   38  cat ./exam01.sh
+   39  cat /etc/exam01.sh
+   40  cat /etc/hello.txt 
+   41  vi exam01.sh
+   42  ./exam01.sh 
+   43  cat /etc/hello.txt 
+   44  ansible-doc -s scripts
+   45  ansible-doc -s script
+   46  ansible all -m script -a 'chdir=/script free_form=/root/exam01.sh removes=/script'
+   47  ansible all -m script -a ' free_form=/root/exam01.sh removes=/script'
+   48  ls
+   49  pwd
+   50  ansible all -m script -a ' free_form=exam01.sh removes=/script'
+   51  ansible all -m script -a ' free_form=exam01.sh removes=/script' -vv
+   52  ansible all -m script -a ' free_form=exam01.sh removes=/script' -vvvv
+   53  ansible all -m script -a 'exam01.sh
+   54  '
+   55  ansible all -m script -a '/root/exam01.sh
+   56  '
+   57  cp exam01.sh exam02.sh 
+   58  vi exam02.sh
+   59  ansible all -m script -a '/root/exam02.sh'
+   60  ansible all -m setup
+   61  ansible-doc -s setup
+   62  history 
+   63  grep INVEN /etc/ansible/ansible.cfg 
+   64  grep -i INVEN /etc/ansible/ansible.cfg 
+   65  grep -i fork /etc/ansible/ansible.cfg 
+   66  grep -i private /etc/ansible/ansible.cfg 
+   67  ls .ssh
+   68  ls .ssh/id_rsa
+   69  file .ssh/id_rsa
+   70  cat  .ssh/id_rsa
+   71  grep -i library /etc/ansible/ansible.cfg 
+   72  ansible all --list-hosts
+   73  ansible dbservers --list-hosts
+   74  ansible webservers --list-hosts
+   75  ansible 192.168.0.201 192.168.0.202 --list-hosts
+   76  ansible 192.168.0.201,192.168.0.202 --list-hosts
+   77  vi /etc/ansible/hosts 
+   78  ansible webservers --list-hosts
+   79  vi /etc/ansible/hosts 
+   80  poweroff
+   81  python -V
+   82  yum install epel-release
+   83  yum list all ansible*
+   84  yum install ansible
+   85  python -m pip install --upgrade pip
+   86  python -m pip install
+   87  pip -V
+   88  pip 
+   89  yum install ansible
+   90  ansible -V
+   91  ansible -v
+   92  ansible --version
+   93  ssh 192.168.0.201
+   94  ssh 192.168.0.202
+   95  ssh 192.168.0.203
+   96  ssh-keygen -t rsa
+   97  ssh-copy-id 192.168.0.201
+   98  ssh-copy-id 192.168.0.202
+   99  ssh-copy-id 192.168.0.203
+  100  history 
+  101  ssh 192.168.0.201 hostname
+  102  ssh 192.168.0.202 hostname
+  103  ssh 192.168.0.203 hostname
+  104  ssh 192.168.0.201 date;ssh 192.168.0.202 date;ssh 192.168.0.203 date
+  105  history 
+  106  ssh 192.168.0.204
+  107  ssh 192.168.0.205
+  108  ssh 192.168.0.206
+  109  ssh-copy-id 192.168.0.204
+  110  ssh-copy-id 192.168.0.205
+  111  ssh-copy-id 192.168.0.206
+  112  ssh 192.168.0.201 date;ssh 192.168.0.202 date;ssh 192.168.0.203 date
+  113  ssh 192.168.0.201 'yum install epel-release -y'
+  114  ssh 192.168.0.201 'touch /tmp/aaaa'
+  115  ls /etc/ansible/
+  116  ls /etc/ansible/hosts 
+  117  vi /etc/ansible/hosts
+  118  cat /etc/ansible/hosts 
+  119  ansible 192.168.0.207 -m setup -a 'filter=ansible_facts'
+  120   ansible 192.168.0.206 -m
+  121  ansible 192.168.0.206 -m setup -a 'filter=ansible_facts'
+  122  ansible 192.168.0.206 -m setup -a 'filter=ansible_facs'
+  123  ansible 192.168.0.206 -m setup -a 'filter=ansible_facts'
+  124  ansible 192.168.0.206 -m setup|more
+  125  ansible 192.168.0.206 -m setup -a 'filter=ansible_bios_date'
+  126  ansible 192.168.0.206 -m setup -a 'filter=ansible_cmdline'
+  127  ansible 192.168.0.206 -m setup -a 'filter=discovered_interpreter_python'
+  128   ansible --version
+  129  ansible all -m yum -a 'name=epel-release state=latest'
+  130  cat a01.sh 
+  131  curl http://192.168.0.201
+  132  curl http://192.168.0.203
+  133  curl http://192.168.0.202
+  134  curl http://192.168.0.204
+  135  curl http://192.168.0.205
+  136  curl http://192.168.0.206
+  137  curl http://192.168.0.207
+  138  ansible --help
+  139  rpm -q ntpd
+  140  rpm -q ntp
+  141  systemctl status ntpd
+  142  rpm -q chrony
+  143  systemctl status chrony
+  144  systemctl status chronyd
+  145  ansible 192.168.0.201 -m shell -a 'cat /etc/chrony.conf'
+  146  ansible 192.168.0.201 -m shell -a 'chronyc sources'
+  147  cp -a /etc/chrony.conf 
+  148  cp -a /etc/chrony.conf chrony.conf
+  149  vi chrony.conf
+  150  cp -a /etc/chrony.conf{,.bak}
+  151  cp chrony.conf /etc/chrony.conf
+  152  chronyc sources
+  153  nslookup
+  154  vi /etc/chrony.conf
+  155  cp chrony.conf{,1} 
+  156  ls
+  157  vi chrony.conf1
+  158  vi chrony.conf
+  159  ansible 192.168.0.201 -m copy -a 'src=chrony.conf dest=/etc/chrony.conf'
+  160  ansible 192.168.0.201 -m shell -a 'head -10 /etc/chrony.conf'
+  161  ansible timeclient -m copy -a 'src=chrony.conf1 dest=/etc/chrony.conf'
+  162  ansible 192.168.0.204 -m shell -a 'head -10 /etc/chrony.conf'
+  163  ansible 192.168.0.207 -m shell -a 'head -10 /etc/chrony.conf'
+  164  ansible 192.168.0.201 -m service -a 'name=chronyd state=restarted'
+  165  ansible timeclient -m service -a 'name=chronyd state=restarted'
+  166  ansible all -m shell -a 'date'
+  167  history 
+  168  head -10 chrony.conf
+  169  head -10 chrony.conf1
+  170  history 
+  171  ansible all -m yum -a 'name=nginx state=absent'
+  172  ansible all -m yum -a 'name=nginx state=absent'poweroff
+  173  ping z.cn
+  174  ansible 192.168.0.201 -m command -a 'echo "world">/tmp/test2'
+  175  ansible 192.168.0.207 -m command -a 'echo "world">/tmp/test2'
+  176  ansible all -a 'ping'
+  177  ansible all -a 'date'
+  178  ping 192.168.0.201
+  179  ansible all -a 'ping -c1  192.168.0.200'
+  180  ansible all -a 'yum -y remove vsftpd'
+  181  ansible-doc
+  182  ansible-doc -M
+  183  ansible-doc -s
+  184  ansible-doc -S
+  185  ansible-doc 
+  186  ansible-doc -l
+  187  ansible-doc -l|wc -l
+  188  ansible-doc -l|grep command
+  189  ansible-doc -s command
+  190  ansible group2 -m cron -a '"hour=1-2" minute=*/2 job="ls" name="ansible test"'
+  191  ansible group2 -m cron -a 'hour="1-2" minute="*/2" job="ls" name="ansible test"'
+  192  68.0.203 | SUCCESS => {
+  193      "ansible_facts": {
+  194          "discovered_interpreter_python": "/usr/bin/python"
+  195      }, 
+  196  ansible
+  197  vi /etc/ansible/myhosts
+  198  vi /etc/ansible/hosts 
+  199  ansible timeclient -m service -a 'name=chronyd state=restarted'
+  200  ansible all -m yum -a 'name=nginx state=absent'
+  201  vim playbook_nginx.yml
+  202  cat  playbook_nginx.yml
+  203  ansible-playbook --help
+  204  ansible-playbook  playbook_nginx.yml --syntax-check
+  205  ansible-playbook  playbook_nginx.yml 
+  206  curl http://192.168.0.201
+  207  curl http://192.168.0.202
+  208  curl http://192.168.0.203
+  209  curl http://192.168.0.204
+  210  ansible-playbook  playbook_nginx.yml --syntax-check
+  211  vim /etc/ansible/hosts 
+  212  ansible-doc -s user
+  213  ansible-doc -s group
+  214  ansible-doc -s file
+  215  ansible-doc -s touch
+  216  ansible-doc -s copy
+  217  ansible 192.168.0.207 -m setup
+  218  testserver ansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addressesansible_all_ipv4_addresses
+  219  ansible 192.168.0.207 -m setup|grep ansible_fact
+  220  ansible 192.168.0.207 -m setup|grep -A 20 ansible_fact
+  221  ansible 192.168.0.207 -m setup|grep -A 50 ansible_fact
+  222  ansible 192.168.0.207 -m setup|grep -A 50 discovered_interpreter
+  223  ansible-doc -s setup 
+  224  ansible 192.168.0.207 -m setup -a 'filter=ansible_facts'
+  225  ansible 192.168.0.207 -m ping -v
+  226  vim /etc/ansible/ansible.cfg
+  227  ansible all -m command -a 'echo hello>/tmp/f001'
+  228  ansible all -m shell -a 'echo hello>/tmp/f001'
+  229  ansible all -m user -a 'name=david'
+  230  ansible all -m shell -a 'echo "1234"|passwd --stdin david'
+  231  history 
+  232  vi examtest.sh
+  233  chmod +x 'name=david'
+  234  chmod +x examtest.sh 
+  235  pwd
+  236  ansible all -m script -a '/root/examtest.sh'
+  237  ansible all -m shell -a 'cat /tmp/examtest.sh'
+  238  vi examtest.sh
+  239  ansible all -m shell -a 'cat /tmp/test090201.txt'
+  240  ansible all -m shell -a 'cat /tmp/test090201'
+  241  history 
+  242  ansible-doc -s yum
+  243  ansible all -m yum -a 'name=vsftpd state=present'
+  244  ansible all -m yum -a 'name=vsftpd state=absent'
+  245  history 
+  246  ansible all -m yum -a 'name=nginx state=latest'
+  247  ansible all -m service -a 'name=nginx state=started enabled=yes'
+  248  curl http://192.168.0.201
+  249  curl http://192.168.0.203
+  250  curl http://192.168.0.207
+  251  history 
+  252  echo "hello this is `hostname` Home page">index.html
+  253  cat index.html 
+  254  echo 'echo "hello this is `hostname` Home page"> /usr/share/nginx/html/index.html'>a01.sh
+  255  vi a01.sh 
+  256  chmod +x a01.sh
+  257  ansible all -m script -a 'a01.sh'
+  258  curl http://192.168.0.207
+  259  curl http://192.168.0.203
+  260  curl http://192.168.0.204
+  261  history 
+  262  ansible-doc -s file
+  263  ansible-doc -s copy
+  264  ls .ansible/tmp/
+  265  ansible -i /etc/ansible/myhosts  webservers -m command -a 'tail -2 /etc/passwd'
+  266  ansible -i /etc/ansible/myhosts  webservers -m command -a 'useradd tom'
+  267  ansible -i /etc/ansible/myhosts  webservers -m command -a 'tail -2 /etc/passwd'
+  268  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=tom state=absent'
+  269  ansible -i /etc/ansible/myhosts  webservers -m command -a
+  270  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=alice'
+  271  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=mysql system=yes'
+  272  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=zabbix system=yes shell=/usr/sbin/nologin'
+  273  ansible -i /etc/ansible/myhosts  webservers -m command -a 'tail -2 /etc/passwd'
+  274  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=zabbix state=absent'
+  275  ansible -i /etc/ansible/myhosts webservers -m user -a 'name=mysql state=absent'
+  276  history 
+  277  ansible-doc -s group
+  278  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=mysql gid=800 system=yes state=present'
+  279  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001'
+  280  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' -v
+  281  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' -vv
+  282  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oinstall gid=60001' 
+  283  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=dba gid=60002' 
+  284  ansible -i /etc/ansible/myhosts  webservers -m group -a 'name=oper gid=60003' 
+  285  ansible -i /etc/ansible/myhosts  webservers -m user -a 'name=oracle uid=6001 group=oinstall groups="dba,oper"'
+  286  ansible -i /etc/ansible/myhosts  webservers -a 'id oracle'
+  287  history 
+  288  ansible -i /etc/ansible/myhosts  webservers -m file -a 'path="/tmp/testfile" owner=oracle group=oinstall mode=775'
+  289  ansible -i /etc/ansible/myhosts  webservers -m copy -a 'src=/etc/hosts dest=/tmp/testfile owner=oracle group=oinstall mode=775'
+  290  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'
+  291  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /tmp/testfile'
+  292  ansible -i /etc/ansible/myhosts  webservers -m file -a 'path=/tmp/testfile owner=root group=root mode=600'
+  293  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /tmp/testfile'
+  294  ansible -i /etc/ansible/myhosts  webservers -m file -a 'src=/tmp/testfile dest=/etc/testfile state=link '
+  295  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'
+  296  history 
+  297  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile' -vvv
+  298  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'  -v
+  299  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'  -vv
+  300  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'  -vvv
+  301  ansible -i /etc/ansible/myhosts  webservers -a 'ls -l /etc/testfile'  -vvvv
+  302  history 
+  303  ansible dbservers -m ping
+  304   ping 192.168.0.207
+  305  ansible testserver -m ping
+  306  ansible testserver -m ping -v
+  307  ansible testserver -m ping -vvv
+  308  ansible testserver -m ping
+  309  ansible testserver -m ping -vvvv
+  310  ansible testserver -m ping -vvv
+  311  ansible testserver -m ping -vv
+  312  ansible testserver -m ping 
+  313  ansible all -m setup
+  314  ansible testserver -m ping -vv
+  315  ssh 192.168.0.206
+  316  ssh 192.168.0.207
+  317  ssh 192.168.0.200
+  318  ansible testserver -m ping -vvv
+  319  ansible all -m ping 
+  320  ansible testserver -m setup -a 'filter=ansible_ssh*'
+  321  ansible 192.168.0.206 -m setup -a 'filter=ansible_ssh*'
+  322  ansible 192.168.0.206 -m setup -a 'filter=ansible_ssh_port'
+  323  ansible 192.168.0.206 -m setup -a 'filter=ansible_ssh_user'
+  324  ansible 192.168.0.207 -m ping
+  325  ansible-doc -s service
+  326  ansible testserver --list-hosts
+  327  ansible testserver -m ping
+  328  ansible testserver -m ping -k oracle
+  329  ansible testserver -m ping -k 'oracle
+  330  '
+  331  ansible testserver -k oracle -m ping 
+  332  ansible testserver --ask-pass oracle -m ping 
+  333  ansible testserver --ask-pass=oracle oracle -m ping 
+  334  ansible testserver --ask-pass oracle oracle -m ping 
+  335  ansible testserver --ask-pass oracle  -m ping 
+  336  vim playbook_nginx.yml 
+  337  x/mdev = 0.206/0.206/0.206/0.000 ms
+  338  ansible all -m command -a 'date'
+  339  ansible a -m command -a 'date'
+  340  ansible-doc -s get_url
+  341  ansible-doc -s copy
+  342  ansible-doc -s service
+  343  ansible all -m shell -a 'cat /tmp/test100.txt'
+  344  ansible 192.168.0.201 -m setup|grep memory
+  345  ansible 192.168.0.201 -m setup|grep -A 10 memory
+  346  ansible 192.168.0.201 -m shell -a 'free'
+  347  ansible 192.168.0.201 -m setup|grep -A 20 memory
+  348  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotl_mb'
+  349  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'
+  350  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'|grep mem
+  351  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'|grep mem|awk '{print $NF}'
+  352  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'|grep mem|awk '{print $NF}'|awk '{FS:,}{print $1}'
+  353  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'|grep mem|awk '{print $NF}'|awk '{FS=,}{print $1}'
+  354  ansible 192.168.0.201 -m setup -a 'filter=ansible_memtotal_mb'|grep mem|awk '{print $NF}'|awk -F.'{print $1}'
+  355  ansible 192.168.0.201 -m setup -a 'filter=ansible_fqdn'
+  356  rpm -qa |grep ansi
+  357  rpm -qa |grep jia
+  358  rpm -qa |grep jin
+  359  ansible 192.168.0.203 -m setup
+  360  ansible 192.168.0.203 -m setup -a 'filter=memory'
+  361  ansible 192.168.0.203 -m setup|more
+  362  ansible all -m shell -a 'cat /tmp/mac_add.txt'
+  363  vi playbook_nginx.yml
+  364  rpm -q|grep jinja2
+  365  rpm -qa|grep jinja2
+  366  rpm -qa|grep python
+  367  ansible-doc -s template
+  368  ansible-doc -s user
+  369  ansible 192.168.0.203 -m setup
+  370  ansible 192.168.0.203 -m setup|grep hostname
+  371  ansible 192.168.0.203 -m setup|grep memory
+  372  ansible 192.168.0.203 -m setup|grep -A 30 memory
+  373  ansible 192.168.0.207 -m setup|grep ansible_memtotal_mb
+  374  ansible all -m setup|grep ansible_memtotal_mb
+  375  cat playbook_user.yml playbook_mysql.yml 
+  376  ansible 192.168.0.201 -m shell -a 'id testuser1'
+  377  ansible 192.168.0.201 -m shell -a 'id testuser2'
+  378  ansible 192.168.0.201 -m shell -a 'id testuser3'
+  379  ansible-doc -l|grep yum
+  380  ansible-doc -s yum_repository
+  381  ansible-doc -l|grep rpm
+  382  ansible-doc -l|grep mysql
+  383  ansible-doc -s mysql_user
+  384  vim playbook_loop01.yml 
+  385  ansible all -m command -a 'date'
+  386  ansible al -m command -a 'date'
+  387  ls
+  388  ansible-playbook playbook_nginx.yml 
+  389  ansible-doc -s get_yrl
+  390  ansible-doc -s get_url
+  391  ansible all -m get_url -a 'url=http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.45/bin/apache-tomcat-8.5.45.tar.gz dest=/tmp'
+  392  vim playbook_nginx.yml 
+  393  cp playbook_nginx.yml{,.bak} 
+  394  vim playbook_nginx.yml
+  395  history 
+  396  ansible-playbook playbook_nginx.yml
+  397  wget http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.45/bin/apache-tomcat-8.5.45.tar.gz
+  398  ansible all -m shell -a 'mkdir /download1'
+  399  ansible all -m file -a 'state=directory dest=/download2'
+  400  history 
+  401  ansible all -m get_url -a 'url=http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.45/bin/apache-tomcat-8.5.45.tar.gz dest=/download1'
+  402  ansible-doc -s unarchive
+  403  ansible all -m file -a 'state=directory dest=/src1'
+  404  ansible all -m file -a 'state=directory dest=/src2'
+  405  ansible all -m unarchive -a 'src=/download1/apache-tomcat-8.5.45.tar.gz dest=/src1'
+  406  ansible-doc -s unarchive
+  407  ansible all -m unarchive -a 'remote_src=/download1/apache-tomcat-8.5.45.tar.gz dest=/src1'
+  408  ls
+  409  ansible all -m unarchive -a 'src=apache-tomcat-8.5.45.tar.gz dest=/src1'
+  410  java -c
+  411  java 
+  412  java --version
+  413  java |more
+  414  java -version
+  415  scp 192.168.0.201:/etc/nginx/nginx.conf /root/
+  416  ls
+  417  vi nginx.conf 
+  418  vi /etc/ansible/hosts 
+  419  vim /etc/ansible/hosts
+  420  yum install httpd
+  421  cp /etc/httpd/conf/httpd.conf .
+  422  vim /etc/ansible/hosts
+  423  ls
+  424  vi httpd.conf 
+  425  vim httpd.conf 
+  426  ls
+  427  grep Listen httpd.conf
+  428  grep Listen httpd.conf.j2 
+  429  vim httpd.conf 
+  430  grep Listen httpd.conf.j2 
+  431  grep Listen httpd.conf
+  432  vi /etc/ansible/hosts 
+  433  grep Listen httpd.conf.j2 
+  434  ssh-copy-id 192.168.0.208 
+  435  ansible 192.168.0.208 -m mysql_user -a 'user=dbuser02 priv=db1.*:ALL append_privs=yes password=1234'
+  436  echo 192.168.0.208 >> /etc/ansible/hosts 
+  437  ansible 192.168.0.208 -m mysql_user -a 'user=dbuser02 priv=db1.*:ALL append_privs=yes password=1234'
+  438  vi /etc/ansible/hosts 
+  439  yum 
+  440  ansible 192.168.0.208 -m mysql_user -a 'user=dbuser02 priv=db1.*:ALL append_privs=yes password=1234'
+  441  ansible 192.168.0.208 -m mysql_user -a 'login_user=repl login_password=1234 user=dbuser02 priv=db1.*:ALL append_privs=yes password=1234'
+  442  ansible 192.168.0.208 -m mysql_user -a 'login_user=root login_password=1234 user=dbuser02 priv=db1.*:ALL append_privs=yes password=1234'
+  443  ansible 192.168.0.208 -m mysql_user -a 'login_user=root login_password=1234 user=dbuser03 priv=db2.*:ALL append_privs=yes password=1234'
+  444  vim playbook_loop03.yml
+  445  ansible-playbook playbook_loop03.yml --syntax-check
+  446  ansible-playbook playbook_loop03.yml 
+  447  vim playbook_loop03.yml
+  448  ansible-playbook playbook_loop03.yml  -C
+  449  vim playbook_loop03.yml
+  450  ansible-playbook playbook_loop03.yml -C
+  451  ansible-playbook playbook_loop03.yml 
+  452  cat  playbook_loop03.yml
+  453  cp playbook_loop0{3,4}.yml
+  454  vi playbook_loop04.yml
+  455  ansible-playbook playbook_loop04.yml -C 
+  456  ansible-playbook playbook_loop04.yml 
+  457  poweroff
+  458  vim play02.yml
+  459  ansible-playbook play02.yml
+  460  vim play02.yml
+  461  vim playbook_nginx.yml 
+  462  ansible-playbook playbook_nginx.yml
+  463  vim playbook_nginx.yml 
+  464  ansible-playbook playbook_nginx.yml
+  465  vim playbook_nginx.yml 
+  466  ansible-playbook playbook_nginx.yml
+  467  vim playbook_nginx.yml 
+  468  ansible-playbook playbook_nginx.yml
+  469  vim playbook_nginx.yml 
+  470  ansible-playbook playbook_nginx.yml
+  471  vim playbook_nginx.yml 
+  472  cat playbook_nginx.yml 
+  473  hist
+  474  history 
+  475  vim playbook_nginx.yml 
+  476  ansible-playbook playbook_nginx.yml
+  477  vim playbook_nginx.yml 
+  478  ansible-playbook playbook_nginx.yml
+  479  vim playbook_nginx.yml 
+  480  ansible-playbook playbook_nginx.yml
+  481  vim playbook_nginx.yml 
+  482  ansible-playbook playbook_nginx.yml
+  483  vim playbook_nginx.yml 
+  484  ansible-playbook playbook_nginx.yml
+  485  vim playbook_nginx.yml 
+  486  ansible-playbook playbook_nginx.yml
+  487  vim playbook_nginx.yml 
+  488  ansible-playbook playbook_nginx.yml
+  489  vim playbook_nginx.yml 
+  490  ansible-playbook playbook_nginx.yml
+  491  vim playbook_nginx.yml 
+  492  ansible-playbook playbook_nginx.yml
+  493  vim playbook_nginx.yml 
+  494  ansible-playbook playbook_nginx.yml --tags=install
+  495  ansible-playbook playbook_nginx.yml --tags=upgrade
+  496  ansible-playbook playbook_nginx.yml --tags=startup
+  497  ansible-playbook playbook_nginx.yml --tags="install"
+  498  wq
+  499  vim playbook_nginx.yml 
+  500  ansible-playbook playbook_nginx.yml --tags="filetest"
+  501  vim playbook_apache.yml
+  502  ansible-playbook playbook_apache.yml --syntax-check
+  503  vim playbook_apache.yml
+  504  ansible-playbook playbook_apache.yml --list-hosts
+  505  ansible-playbook playbook_apache.yml 
+  506  vim playbook_apache.yml
+  507  ansible-playbook playbook_apache.yml 
+  508  vim playbook_apache.yml
+  509  cat playbook_apache.yml
+  510  vim playbook_file.yml
+  511  echo dsfd >file2
+  512  ls
+  513  ansible-playbook playbook_file.yml -C
+  514  vim playbook_file.yml
+  515  ansible-playbook playbook_file.yml -C
+  516  vim playbook_file.yml
+  517  ansible-playbook playbook_file.yml -C
+  518  vim playbook_file.yml
+  519  ls
+  520  vim playbook_file.yml
+  521  ls
+  522  ansible-playbook playbook_file.yml 
+  523  vim playbook_file.yml
+  524  ansible-playbook playbook_file.yml 
+  525  vim playbook_file.yml
+  526  ansible-playbook playbook_file.yml -C
+  527  vim playbook_file.yml
+  528  cat /etc/group
+  529  vim playbook_user.yml
+  530  ansible-playbook playbook_user.yml --synax-check
+  531  history 
+  532  ansible-playbook playbook_user.yml --syntax-check
+  533  ansible-playbook playbook_user.yml 
+  534  vim playbook_user.yml
+  535  ansible-playbook playbook_user.yml -C
+  536  vim playbook_user.yml
+  537  ansible-playbook playbook_user.yml -C
+  538  ansible-playbook playbook_user.yml 
+  539  vim playbook_user.yml
+  540  yum install mysql-server
+  541  yum install mysqld-server
+  542  yum install mysqld
+  543  yum install mysql
+  544  vim playbook_mysql.yml
+  545  ansible-playbook playbook_mysql.yml --syntax-check
+  546  ansible-playbook playbook_mysql.yml -C
+  547  ansible-playbook playbook_mysql.yml -C -vvv
+  548  vim playbook_loop01.yml
+  549  ansible-playbook playbook_loop01.yml -C
+  550  vim playbook_loop01.yml
+  551  ansible-playbook playbook_loop01.yml -C
+  552  vim playbook_loop01.yml
+  553  ansible-playbook playbook_loop01.yml -C
+  554  vim playbook_loop01.yml
+  555  ansible-playbook playbook_loop01.yml -C
+  556  vim playbook_loop01.yml
+  557  cp playbook_loop0{1,2}.yml
+  558  vim playbook_loop02.yml 
+  559  ansible-playbook playbook_loop02.yml -C
+  560  ansible-playbook playbook_loop02.yml 
+  561  cat playbook_loop02.yml
+  562  cat playbook_loop04.yml
+  563  poweroff
+  564  vim /cluster_playbook/roles/apacheweb/handlers/main.yml
+  565  vim /cluster_playbook/roles/nginxlb/handlers/main.yml
+  566  vim /cluster_playbook/roles/ha/handlers/main.yml
+  567  vim /cluster_playbook/roles/ha/tasks/main.yml
+  568  vim /cluster_playbook/roles/apacheweb/tasks/main.yml
+  569  vim /cluster_playbook/roles/ha/tasks/main.yml
+  570  mv /cluster_playbook/roles/site.yml{,.bak}
+  571  cd /cluster_playbook/roles/
+  572  cd ..
+  573  vim site.yml
+  574  ansible-playbook site.yml 
+  575  ls
+  576  ansible-playbook -i hosts site.yml 
+  577  ssh 192.168.0.208
+  578  ssh-copy-id 192.168.0.208
+  579  exit
+  580  cp /etc/httpd/conf/httpd.conf /cluster_playbook/roles/apacheweb/files/
+  581  ansible all -m yum -a 'name=httpd state=absent' 
+  582  ansible all -m yum -a 'name=nginx state=absent' 
+  583  ansible all -m yum -a 'name=httpd state=absent' 
+  584  ansible all -m yum -a 'name=nginx state=absent' 
+  585  ls /cluster_playbook/roles/ha/files/
+  586  ssh 192.168.0.208
+  587  ansible-doc -l
+  588  ansible-doc -l|grep word
+  589  mkdir -p /cluster_playbook/{tasks,files,templates,vars,handlers}
+  590  tree /cluster_playbook/
+  591  yum install tree -y
+  592  tree /cluster_playbook/
+  593  rm -rf /cluster_playbook/
+  594  mkdir -p /cluster_playbook/roles/{nginxlb,apacheweb,ha}/{tasks,files,templates,vars,handlers,defaults,meta}
+  595  tree /cluster_playbook/
+  596  mkdir -p /cluster_playbook/roles/common/{tasks,files,templates,vars,handlers,defaults,meta}
+  597  scp 192.168.0.202:/etc/nginx/nginx.conf /cluster_playbook/roles/nginxlb/files/
+  598  ls /cluster_playbook/roles/nginxlb/files/
+  599  ls /cluster_playbook/roles/ha/files/
+  600  vi /cluster_playbook/roles/site.yml
+  601  vim /cluster_playbook/roles/site.yml
+  602  ansible-playbook /cluster_playbook/roles/site.yml
+  603  vi /etc/ansible/hosts 
+  604  ls /cluster_playbook/roles/
+  605  ls /cluster_playbook/
+  606  ls /cluster_playbook/roles/
+  607  ls /cluster_playbook/roles/site.yml.bak 
+  608  rm /cluster_playbook/roles/site.yml.bak
+  609  ls
+  610  ls /cluster_playbook/
+  611  cat /cluster_playbook/site.yml 
+  612  tree /cluster_playbook/
+  613  cd /cluster_playbook/
+  614  ls
+  615  cp /etc/ansible/hosts  .
+  616  ansible 192.168.0.202 -m setup|grep os_family
+  617  cd
+  618   cd ansible/
+  619  unzip ansible-examples-master.zip 
+  620  ls
+  621  cd ansible-examples-master/
+  622  ls
+  623  cd tomcat-standalone/
+  624  ls
+  625  vi hosts 
+  626  vi /etc/hosts
+  627  ansible-playbook -i hosts site.yml 
+  628  ls
+  629  cd ..
+  630  ls
+  631  cd wordpress-nginx
+  632  ls
+  633  cat hosts.example 
+  634  vi site.yml 
+  635  cp hosts.example hosts
+  636  vi hosts
+  637  ansible-playbook -i hosts site.yml 
+  638  vi site.yml 
+  639  cd roles/nginx/tasks/
+  640  ls
+  641  vi main.yml 
+  642  cd ../..
+  643  ls
+  644  cd nginx/tasks/
+  645  vim main.yml 
+  646  ansible-doc -s yum
+  647  cd /root/ansible/ansible-examples-master/wordpress-nginx_rhel7/
+  648  ls
+  649  rm hosts
+  650  ls
+  651  cp hosts.example hosts
+  652  cat hosts
+  653  vi /etc/hosts
+  654  ansible-playbook -i hosts site.yml --syntax-check
+  655  ansible-playbook -i hosts site.yml --syntax-check -vvvv
+  656  cat hosts
+  657  vi hosts
+  658  vi site.yml 
+  659  ansible-playbook -i hosts site.yml --syntax-check 
+  660  vi hosts
+  661  ansible-playbook -i hosts site.yml --syntax-check 
+  662  vi hosts
+  663  ansible-playbook -i hosts site.yml --syntax-check 
+  664  ansible-playbook -i hosts site.yml -C
+  665  ansible-playbook -i hosts site.yml 
+  666  cd /root/ansible/ansible-examples-master/wordpress-nginx_rhel7/roles/
+  667  ls
+  668  cd /root/ansible/ansible-examples-master/wordpress-nginx_rhel7/roles/mariadb/
+  669  ls
+  670  vim ../common/tasks/main.yml 
+  671  vim ../mariadb/tasks/main.yml 
+  672  cd ..
+  673  tree
+  674  vim php-fpm/tasks/main.yml 
+  675  vim wordpress/tasks/main.yml 
+  676  ls common/
+  677  ls wordpress/
+  678  ls wordpress/tasks/
+  679  ls wordpress/templates/
+  680  vim wordpress/tasks/main.yml 
+  681  ssh webserver2
+  682  vi /etc/ansible/ansible.cfg 
+  683  ls
+  684  cd /root/ansible/
+  685  ls
+  686  cd ansible-examples-master/
+  687  ls
+  688  cd wordpress-nginx_rhel7/
+  689  tree
+  690  vi site.yml 
+  691  ls
+  692  cd roles/
+  693  ls
+  694  cd mariadb/
+  695  cd tasks/
+  696  ls
+  697  vi main.yml 
+  698  vim ../../mariadb/tasks/main.yml 
+  699  vim ../../wordpress/tasks/main.yml 
+  700  cd /cluster_playbook/roles/apacheweb/tasks/
+  701  vim main.yml
+  702  vim /cluster_playbook/roles/nginxlb/tasks/main.yml
+  703  vim /cluster_playbook/roles/ha/tasks/main.yml
+  704  vim /cluster_playbook/roles/common/tasks/main.yml
+  705  vi /etc/ansible/hosts 
+  706  vi /etc/hosts 
+  707  cd /root/ansible/ansible-examples-master/wordpress-nginx_rhel7/
+  708  ls
+  709  cat README.md 
+  710  ansible-playbook -i hosts site.yml
+  711  cat hosts
+  712  cp hosts.example hosts
+  713  ansible-playbook -i hosts site.yml
+  714  ping webserver2
+  715  cat hosts 
+  716  ansible-playbook -i hosts site.yml
+  717  ssh webserver2
+  718  ping webserver2
+  719  vi /etc/hosts 
+  720  ansible-playbook -i hosts site.yml
+  721  tree|more
+  722  cd group_vars/
+  723  ls
+  724  vim all
+  725  mkdir /ansible
+  726  cd /ansible/
+  727  ls
+  728  unzip ansible-examples-master.zip 
+  729  ssh-copy-id 192.168.0.209
+  730  ping 192.168.0.209
+  731  ssh-copy-id 192.168.0.209
+  732  cd ansible-examples-master/wordpress-nginx_rhel7/
+  733  ls
+  734  cp hosts.example hosts
+  735  cat hosts
+  736  vi /etc/hosts
+  737  ansible-playbook -i hosts site.yml 
+  738  ansible-playbook -i hosts site.yml  --list-tasks
+  739  cd ..
+  740  pwd
+  741  cd tomcat-memcached-failover/
+  742  ls
+  743  ansible-playbook -i hosts site.yml  --list-tasks
+  744  cd ../lamp_haproxy/
+  745  ansible-playbook -i hosts site.yml  --list-tasks
+  746  ansible-playbook -i hosts site.yml  --list-hosts
+  747  cd /cluster_playbook/roles/
+  748  ls
+  749  cd ..
+  750  ls
+  751  cp site.yml site_del.yml 
+  752  vi site_del.yml
+  753  ls
+  754  cat hosts 
+  755  ansible -i hosts lbserver -m yum -a 'name=nginx state=absent'
+  756  ansible -i hosts lbservers -m yum -a 'name=nginx state=absent'
+  757  ansible -i hosts lbservers -m yum -a 'name=keepalived state=absent'
+  758  ansible -i hosts lbservers -m yum -a 'name=nginx state=absent'
+  759  ansible -i hosts webservers -m yum -a 'name=httpd state=absent'
+  760  ansible -i hosts all --list-hosts
+  761  ansible -i hosts webservers --list-hosts
+  762  ansible -i hosts lbservers --list-hosts
+  763  cd /root/ansible/ansible-examples-master/mongodb/
+  764  ls
+  765  cd ../lamp_haproxy/
+  766  ls
+  767  car README.md 
+  768  cat README.md
+  769  cat hosts 
+  770  ansible-playbook -i hosts site.yml 
+  771  pwd
+  772  ansible-playbook -i hosts site.yml 
+  773  ansible-playbook -i hosts site.yml --list-tasks
+  774  cat /etc/hosts
+  775  cd /ansible/ansible-examples-master/lamp_haproxy/
+  776  ls
+  777  cat hosts 
+  778  vi site.yml 
+  779  ansible -i hosts  site.yml --list-hosts
+  780  ansible-playbook -i hosts  site.yml --list-hosts
+  781  ansible-playbook -i hosts  site.yml --list-tasks
+  782  ansible-playbook -i hosts  site.yml 
+  783  pwd
+  784  la
+  785  ls
+  786  vim site.yml 
+  787  vi hosts
+  788  ssh lb1
+  789  vi /etc/hosts
+  790  cat /root/ansible/ansible-examples-master/lamp_haproxy/hosts 
+  791  vi /etc/hosts
+  792  curl http://192.168.0.204:8888/
+  793  ssh web1 'cat /var/www/html/index.html'
+  794  ssh web2 'cat /var/www/html/index.html'
+  795  ssh db1
+  796  ssh nagios
+  797  ssh lb1
+  798  :q
+  799  ssh db1
+  800  ls -a
+  801  ansible-doc -s mysql_db
+  802  ansible-doc -s yum
+  803  cd /root/ansible/ansible-examples-master/lamp_haproxy/roles/nagios/files/
+  804  ls
+  805  cat nagios.cfg 
+  806  ansible-doc -s yum
+  807  cd /root/ansible/ansible-examples-master/lamp_haproxy
+  808  vim roles/db/tasks/main.yml 
+  809  vim roles/nagios/tasks/main.yml 
+  810  vim roles/common/tasks/main.yml 
+  811  vim roles/nagios/tasks/main.yml 
+  812  cd /ansible/ansible-examples-master/lamp_haproxy/roles/
+  813  vi db/tasks/main.yml 
+  814  vim db/tasks/main.yml 
+  815  cat db/tasks/main.yml 
+  816  vim db/tasks/main.yml 
+  817  cd /cluster_playbook/roles/
+  818  cd ..
+  819  ls
+  820  cat site.yml 
+  821  vi hosts
+  822  vi /etc/hosts
+  823  tree
+  824  ls
+  825  ansible-playbook -i hosts site.yml 
+  826  vi hosts 
+  827  vim roles/apacheweb/tasks/main.yml 
+  828  ansible-playbook -i hosts site.yml 
+  829  vim roles/apacheweb/tasks/main.yml 
+  830  ansible-playbook -i hosts site.yml 
+  831  vim roles/apacheweb/tasks/main.yml 
+  832  ansible-playbook -i hosts site.yml 
+  833  echo $RANDOM
+  834  ansible-playbook -i hosts site.yml 
+  835  cd
+  836  vim playbook_1.yml
+  837  ansible-playbook playbook_1.yml
+  838  vim playbook_1.yml
+  839  ansible-playbook playbook_1.yml
+  840  vim playbook_1.yml
+  841  ansible-playbook playbook_1.yml
+  842  vim playbook_1.yml
+  843  ansible-playbook playbook_1.yml
+  844  vim playbook_1.yml
+  845  ansible-playbook playbook_1.yml
+  846  vim playbook_1.yml
+  847  ansible-playbook playbook_1.yml
+  848  vim playbook_1.yml
+  849  ansible-playbook playbook_1.yml
+  850  vim playbook_1.yml
+  851  ansible-playbook playbook_1.yml
+  852  vim playbook_1.yml
+  853  ansible-playbook playbook_1.yml
+  854  vim playbook_1.yml
+  855  ansible-playbook playbook_1.yml
+  856  vim playbook_1.yml
+  857  ansible-playbook playbook_1.yml
+  858  vim playbook_1.yml
+  859  ansible-playbook playbook_1.yml
+  860  vim playbook2.yml
+  861  ansible-playbook playbook2.yml 
+  862  vim playbook2.yml
+  863  ansible-playbook playbook2.yml 
+  864  vim playbook2.yml
+  865  ansible-playbook playbook2.yml 
+  866  vim playbook2.yml
+  867  ansible-playbook playbook2.yml 
+  868  vim playbook2.yml
+  869  ansible-playbook playbook2.yml 
+  870  vim playbook2.yml
+  871  ansible-playbook playbook2.yml 
+  872  vim playbook2.yml
+  873  vim playbook02.yml
+  874  ansible-playbook playbook01.yml 
+  875  vim playbook01.yml
+  876  ansible-playbook playbook01.yml 
+  877  vim playbook01.yml
+  878  ansible-playbook playbook01.yml 
+  879  vim playbook01.yml
+  880  ls
+  881  mkdir /test
+  882  cp *.yml /test
+  883  ls /test
+  884  vim playbook_loop05.yml
+  885  vi /etc/ansible/hosts 
+  886  vim playbook_loop05.yml
+  887  cat /cluster_playbook/hosts 
+  888  cd /cluster_playbook/roles/apacheweb/templates/
+  889  vim index.html.j2
+  890  cd ../..
+  891  cd ..
+  892  ansible -i hosts webservers -m shell -a 'curl http://127.0.0.1'
+  893  ansible -i hosts webservers -m get_url -a 'http://127.0.0.1'
+  894  ansible -i hosts webservers -m get_url -a 'url=http://127.0.0.1'
+  895  ansible-doc -s get_url
+  896  ansible -i hosts webservers -m shell -a 'curl http://127.0.0.1'
+  897  cd roles/nginxlb/files/
+  898  scp s201:/etc/nginx/nginx.conf .
+  899  ls
+  900  vi nginx.conf 
+  901  vim nginx.conf
+  902  pwd
+  903  vim ../tasks/main.yml 
+  904  vim ../handlers/main.yml 
+  905  vi nginx.conf 
+  906  copy /etc/hosts ../../common/files/.
+  907  cp /etc/hosts ../../common/files/.
+  908  vim ../../common/tasks/main.yml 
+  909  cd ../../ha/files/
+  910  ls
+  911  vi keepalived.conf 
+  912  mv keepalived.conf ../templates/keepalived.conf.j2
+  913  vim ../tasks/main.yml 
+  914  vim ../templates/keepalived.conf.j2 
+  915  vim ../tasks/main.yml 
+  916  cd
+  917  ansible-playbook playbook01.yml 
+  918  echo aaa > f1
+  919  echo bbb > f2
+  920  ansible-playbook playbook01.yml 
+  921  ls
+  922  ls ansible/
+  923  ansible-playbook playbook01.yml 
+  924  ansible-playbook playbook_loop05.yml 
+  925  ansible-doc -s copy
+  926  ansible-playbook playbook_loop05.yml 
+  927  ansible-doc -s copy
+  928  ansible-playbook playbook_loop05.yml 
+  929  cd /ansible/ansible-examples-master/lamp_haproxy/
+  930  trr
+  931  tree
+  932  ssh-copy-id 192.168.0.207
+  933  ansible-doc -s template
+  934  ansible 192.168.0.203 -m setup |grep hostname
+  935  ansible all -m shell -a 'ls -l /test100'
+  936  ls /test/play
+  937  ls /test/
+  938  ansible all -m shell -a 'ls -l /test100'
+  939  cd /test/
+  940  ls
+  941  touch f{1,2,3}.txt
+  942  ls
+  943  touch f{a,b,c}.dat
+  944  ls
+  945  cat /etc/yum.repos.d/CentOS-Base.repo
+  946  q
+  947  yum install epel-release
+  948  scp  /etc/yum.repos.d/CentOS-Base.repo 192.168.0.220:/etc/yum.repos.d/CentOS-Base.repo
+  949  ping 192.168.0.211
+  950  curl 172.17.0.2
+  951  curl 192.168.0.211
+  952  curl 192.168.0.211:8080
+  953  poweroff
+  954  cat /etc/ansible/hosts 
+  955  vim /etc/ansible/hosts 
+  956  ansible all -m ping
+  957  ansible all -m shell -a "date"
+  958  ansible-doc -a
+  959  ansible-doc --help
+  960  ansible-doc -l
+  961  ansible-doc -s azure_rm_containerinstance
+  962  history 
+  963  history |more
+  964  history  > s200.history
