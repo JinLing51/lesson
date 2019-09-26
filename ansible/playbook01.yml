@@ -1,0 +1,33 @@
+---
+ - hosts: 192.168.0.201
+   tasks:
+    - name: A
+      debug: msg="User {{ item.key }} is {{ item.value.name }} ({{ item.value.telephone }})"
+      with_dict: {'alice':{'name':'Alice Appleworth', 'telephone':'123-456-789'},'bob':{'name':'Bob Bananarama', 'telephone':'987-654-3210'} }
+
+    - name: B
+      debug: "msg={{ item.0 }} and {{ item.1 }}"
+      with_together:
+       - [ 'a', 'b', 'c', 'd','e' ]
+       - [ 1, 2, 3, 4 ]
+
+    - name: indexed loop demo
+      debug: "msg='at array position {{ item.0 }} there is a value {{ item.1 }}'"
+      with_indexed_items: [1,2,3,4]
+
+    - name: C
+      debug: "msg={{ item }}"
+      with_file:
+        - f1
+        - f2
+
+    - name: D
+      file: dest=/etc/playbook state=directory
+    - name: E
+      copy: 
+       src: "{{ item }}" 
+       dest: /etc/playbook/ 
+       owner: root 
+       mode: 600
+      with_fileglob:
+#        - /root/ansible/*

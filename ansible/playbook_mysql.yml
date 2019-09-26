@@ -1,0 +1,9 @@
+---
+- hosts: all
+  remote_user: root
+  tasks:
+   - name: install mysqld
+     yum:
+      name: mysql
+      state: present
+     when: ansible_memtotal_mb>3000

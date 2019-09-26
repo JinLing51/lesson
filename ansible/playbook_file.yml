@@ -1,0 +1,13 @@
+---
+- hosts: 192.168.0.201
+  remote_user: root
+  tasks:
+   - name: copy file1
+     copy:
+      src: /root/file1
+      dest: /tmp/file1
+     ignore_errors: true
+   - name: copy file2
+     copy:
+      src: /root/file2
+      dest: /tmp/file2

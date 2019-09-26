@@ -1,0 +1,12 @@
+---
+- hosts: 192.168.0.208
+  tasks:
+   - name: create mysql database user
+     mysql_user:
+      login_user: "root"
+      login_password: 1234 
+      user: "{{ item[0] }}" 
+      priv: "{{ item[1] }}.*:ALL" 
+      append_privs: yes
+      password: 1234
+     loop: "{{ ['chralie', 'david'] |product(['db1', 'db2', 'db3'])|list }}"

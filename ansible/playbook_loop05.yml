@@ -1,0 +1,19 @@
+---
+- name: loop testing
+  hosts: all
+  remote_user: root
+  gather_facts: yes
+  tasks:
+   - name: stage01
+     file: 
+      dest: /test100
+      state: directory
+   - name: stage02
+     copy:
+      src: "{{ item }}"
+      dest: /test100
+      owner: root
+      group: wheel
+      mode: 775
+#     with_fileglob: '/test/*.txt'
+     loop: "{{ lookup('fileglob', '/test/*.dat', wantlist=True) }}" 

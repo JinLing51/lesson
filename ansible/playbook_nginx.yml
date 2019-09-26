@@ -1,0 +1,54 @@
+---
+- hosts: all
+  remote_user: root
+  vars:
+   - v1: nginx
+   - v2: abc
+   - v3: xyz
+#   - v10: ZZZZZ
+  tasks: 
+   - name: install nginx
+     yum: 
+      name: "{{ v1 }}"
+      state: latest
+      tags: 
+       - install
+       - upgrade
+   - name: config nginx server
+     copy:
+      src: /root/nginx.conf
+      dest: /etc/nginx/nginx.conf
+     notify: 
+      - re nginx  
+   - name: starting nginx service
+     service:
+      name: nginx
+      state: started
+      enabled: yes
+      tags:
+       - startup
+   - name: edit nginx index page
+     copy:
+      content: "hello world"
+      dest: /usr/share/nginx/html/index.html
+      owner: nginx
+      group: nginx
+#  - name: variables Test task V10
+#     copy:
+#      content: " {{ v10 }} test OK"
+#      dest: /tmp/test100.txt
+#   - name: variables Test task V30
+#     copy:
+#      content: " {{ v30 }} test OK"
+#      dest: /tmp/test300.txt
+   - name: variables gather facts variables
+     copy:
+      content: "this computer  Address {{ ansible_all_ipv4_addresses }} "
+      dest: /tmp/mac_add.txt
+     tags:
+      - filetest
+  handlers:
+   - name: re nginx
+     service:
+       name: nginx
+       state: restarted

@@ -1,0 +1,9 @@
+---
+- hosts: all
+  remote_user: root
+  tasks:
+   - name: create user
+     user:
+      name: user002
+      group: wheel
+     when: ansible_hostname=="s204"

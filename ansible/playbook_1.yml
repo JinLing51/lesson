@@ -1,0 +1,15 @@
+---
+- name: test1
+  hosts: 192.168.0.201
+  gather_facts: yes
+  tasks:
+   - name: A
+     debug: 
+      msg: "hello world {{ ansible_hostname }}"
+   - name: B
+     shell: 'whoami'
+     register: v1
+   - name: C
+     debug: 
+      msg: "hello world {{ v1.stdout }}"
+  

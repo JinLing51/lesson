@@ -1,0 +1,24 @@
+---
+- hosts: webservers
+  remote_user: root
+  tasks:
+   - name: Install apache Server
+     yum:
+      name: httpd
+      state: latest
+   - name: Configuration Apache CONFIGFILE
+     template:
+      src: /root/httpd.conf.j2
+      dest: /etc/httpd/conf/httpd.conf
+     notify:
+      - restart apache
+   - name: Config Apache Service
+     service:
+      name: httpd
+      enabled: true
+      state: started
+  handlers:
+   - name: restart apache
+     service:
+      name: httpd
+      state: restarted
