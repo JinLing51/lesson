@@ -50,6 +50,14 @@ Server: Docker Engine - Community
   Version:          0.18.0
   GitCommit:        fec3683
   
+  mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://wap3hkzj.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
   
 Docker Daemon：Listen Docker API request；And Manager Docker Object：Container images Network
  Volume
